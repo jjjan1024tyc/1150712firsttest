@@ -2,98 +2,143 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>Micro:bit 藍牙加速度計接收器</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>武松打虎互動小遊戲</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; padding-top: 50px; background-color: #f4f4f9; }
-        button { padding: 12px 24px; font-size: 18px; cursor: pointer; background-color: #007bff; color: white; border: none; border-radius: 5px; }
-        button:hover { background-color: #0056b3; }
-        .data-box { margin-top: 30px; font-size: 24px; font-weight: bold; color: #333; }
-        .axis { margin: 10px; padding: 10px; display: inline-block; width: 120px; border-radius: 5px; color: white; }
-        #x-val { background-color: #ff4d4d; }
-        #y-val { background-color: #2ecc71; }
-        #z-val { background-color: #3498db; }
+        body { font-family: 'Microsoft JhengHei', sans-serif; text-align: center; background-color: #fff3e0; margin: 0; padding: 20px; }
+        h1 { color: #d84315; font-size: 36px; }
+        #connectBtn { padding: 15px 30px; font-size: 20px; font-weight: bold; background-color: #ff9800; color: white; border: none; border-radius: 10px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
+        #connectBtn:disabled { background-color: #757575; cursor: not-allowed; }
+        
+        /* 遊戲主舞台 */
+        #gameStage { margin: 30px auto; max-width: 800px; background-color: #ffcc80; border: 5px solid #8d6e63; border-radius: 20px; height: 300px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: space-around; }
+        
+        /* 角色設計 (暫時用文字與EMOJI代替，老師可以自己換成圖片) */
+        .character { font-size: 80px; transition: transform 0.1s ease-in-out; }
+        #wusong { position: relative; }
+        /* 武松打擊時的動畫效果 */
+        .hit-animation { transform: scale(1.3) rotate(-20deg); }
+
+        /* 戰利品小老虎區域 */
+        #tigerContainer { margin: 20px auto; max-width: 800px; min-height: 120px; background-color: #fff; border: 3px dashed #ffb74d; border-radius: 15px; padding: 15px; display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; }
+        .mini-tiger { font-size: 50px; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+
+        /* 計分板 */
+        #scoreBoard { font-size: 28px; font-weight: bold; color: #5d4037; margin: 15px; }
+
+        /* 結束大畫面 */
+        #gameOverModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); color: white; justify-content: center; align-items: center; flex-direction: column; z-index: 100; }
+        #gameOverModal h2 { font-size: 60px; color: #ffd54f; margin-bottom: 10px; }
+        #restartBtn { padding: 12px 25px; font-size: 22px; background-color: #4caf50; color: white; border: none; border-radius: 8px; cursor: pointer; }
+
+        @keyframes popIn {
+            0% { transform: scale(0); }
+            100% { transform: scale(1); }
+        }
     </style>
 </head>
 <body>
 
-    <h1>Micro:bit 網頁藍牙即時連線</h1>
-    <button id="connectBtn">連線到 Micro:bit</button>
+    <h1>🐯 武松打虎體感遊戲 🐯</h1>
+    <button id="connectBtn">連接學生的打虎棒 (Micro:bit)</button>
+    
+    <div id="scoreBoard">目前打到：<span id="scoreText">0</span> / 10 隻老虎</div>
 
-    <div class="data-box">
-        <div class="axis" id="x-val">X: --</div>
-        <div class="axis" id="y-val">Y: --</div>
-        <div class="axis" id="z-val">Z: --</div>
+    <div id="gameStage">
+        <div id="wusong" class="character">🧑‍🌾<div style="font-size:20px; text-align:center;">武松</div></div>
+        <div id="targetTiger" class="character">🐯<div style="font-size:20px; text-align:center;">大老虎</div></div>
+    </div>
+
+    <h3>收服的小老虎欄位：</h3>
+    <div id="tigerContainer"></div>
+
+    <div id="gameOverModal">
+        <h2>🎉 恭喜破關 🎉</h2>
+        <p style="font-size: 24px;">武松成功保護了村莊！</p>
+        <button id="restartBtn" onclick="resetGame()">重新挑戰</button>
     </div>
 
     <script>
-        // Micro:bit 官方的 藍牙 UART 服務與特徵值 UUID
         const UART_SERVICE_UUID = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
         const TX_CHARACTERISTIC_UUID = '6e400002-b5a3-f393-e0a9-e50e24dcca9e';
-
+        
+        let score = 0;
         let receivedBuffer = "";
 
+        // 藍牙連線事件
         document.getElementById('connectBtn').addEventListener('click', async () => {
             try {
-                console.log('正在請求藍牙裝置...');
-                // 1. 尋找並篩選含有 Micro:bit UART 服務的裝置
                 const device = await navigator.bluetooth.requestDevice({
                     filters: [{ namePrefix: 'BBC micro:bit' }],
                     optionalServices: [UART_SERVICE_UUID]
                 });
-
-                console.log('正在連線到 GATT 伺服器...');
                 const server = await device.gatt.connect();
-
-                console.log('正在獲取 UART 服務...');
                 const service = await server.getPrimaryService(UART_SERVICE_UUID);
-
-                console.log('正在獲取 TX 特徵值...');
                 const characteristic = await service.getCharacteristic(TX_CHARACTERISTIC_UUID);
-
-                // 2. 開始監聽 Micro:bit 傳過來的資料
-                await characteristic.startNotifications();
-                console.log('成功啟動監聽！請搖動 Micro:bit。');
                 
-                document.getElementById('connectBtn').innerText = "已連線";
-                document.getElementById('connectBtn').disabled = true;
-
+                await characteristic.startNotifications();
                 characteristic.addEventListener('characteristicvaluechanged', handleDataChanged);
-
+                
+                document.getElementById('connectBtn').innerText = "🟢 棒子已連線";
+                document.getElementById('connectBtn').disabled = true;
             } catch (error) {
-                console.error('藍牙連線失敗: ', error);
-                alert('連線失敗，請確保 Micro:bit 已開機且電腦藍牙已開啟。');
+                console.error(error);
+                alert('連線失敗，請重試！');
             }
         });
 
-        // 3. 處理接收到的二進位資料
+        // 處理 Micro:bit 傳來的資料
         function handleDataChanged(event) {
             const value = event.target.value;
             const decoder = new TextDecoder('utf-8');
-            // 將二進位轉回字串
             receivedBuffer += decoder.decode(value);
 
-            // 檢查字串中是否有換行符號 \n (代表一筆資料傳送完畢)
             if (receivedBuffer.includes('\n')) {
                 const lines = receivedBuffer.split('\n');
-                // 處理最完整的那一筆資料
                 const latestData = lines[lines.length - 2].trim();
-                receivedBuffer = lines[lines.length - 1]; // 剩下的殘留字串留到下次處理
+                receivedBuffer = lines[lines.length - 1];
 
-                if (latestData) {
-                    // 解析 X,Y,Z
-                    const dataArray = latestData.split(',');
-                    if (dataArray.length === 3) {
-                        const x = dataArray[0];
-                        const y = dataArray[1];
-                        const z = dataArray[2];
-
-                        // 更新到網頁畫面上
-                        document.getElementById('x-val').innerText = `X: ${x}`;
-                        document.getElementById('y-val').innerText = `Y: ${y}`;
-                        document.getElementById('z-val').innerText = `Z: ${z}`;
-                    }
+                // 如果收到 HIT，觸發打虎邏輯
+                if (latestData === "HIT") {
+                    wusongAttack();
                 }
             }
+        }
+
+        // 武松攻擊與計分邏輯
+        function wusongAttack() {
+            if (score >= 10) return; // 滿分就不再計算
+
+            // 1. 觸發武松動態特效 (往前衝一下的視覺感)
+            const wusong = document.getElementById('wusong');
+            wusong.classList.add('hit-animation');
+            setTimeout(() => { wusong.classList.remove('hit-animation'); }, 100);
+
+            // 2. 加分
+            score++;
+            document.getElementById('scoreText').innerText = score;
+
+            // 3. 動態增加一隻小老虎到欄位中
+            const tigerContainer = document.getElementById('tigerContainer');
+            const newTiger = document.createElement('div');
+            newTiger.className = 'mini-tiger';
+            newTiger.innerText = '🐯'; // 老師之後可以換成 <img src="小老虎.png">
+            tigerContainer.appendChild(newTiger);
+
+            // 4. 判斷是否達到 10 隻結束遊戲
+            if (score === 10) {
+                setTimeout(() => {
+                    document.getElementById('gameOverModal').style.display = 'flex';
+                }, 500); // 延遲半秒彈出，讓學生看清楚最後一隻老虎出現
+            }
+        }
+
+        // 重設遊戲
+        function resetGame() {
+            score = 0;
+            document.getElementById('scoreText').innerText = score;
+            document.getElementById('tigerContainer').innerHTML = ''; // 清空小老虎
+            document.getElementById('gameOverModal').style.display = 'none';
         }
     </script>
 </body>
