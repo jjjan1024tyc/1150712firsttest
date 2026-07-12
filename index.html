@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>武松打虎 - 特教體感加強版</title>
     <style>
-        body { font-family: 'Microsoft JhengHei', sans-serif; text-align: center; background-color: #fff3e0; margin: 0; padding: 20px; transition: background-color 0.1s; }
+        body { font-family: 'Microsoft JhengHei', sans-serif; text-align: center; background-color: #fff3e0; margin: 0; padding: 20px; transition: background-color 0.1s; display: flex; flex-direction: column; min-height: 95vh; }
+        .main-content { flex: 1; }
         h1 { color: #d84315; }
         
         /* 控制面板區域 */
@@ -15,7 +16,7 @@
         #connectBtn:hover { background-color: #e65100; }
         #connectBtn:disabled { background-color: #bdbdbd; cursor: not-allowed; }
         
-        #disconnectBtn { background-color: #d32f2f; display: none; } /* 預設隱藏 */
+        #disconnectBtn { background-color: #d32f2f; display: none; }
         #disconnectBtn:hover { background-color: #b71c1c; }
 
         #connectionStatus { font-weight: bold; margin-left: 10px; color: #555; }
@@ -27,24 +28,25 @@
         .character-container { position: relative; width: 250px; height: 250px; display: flex; justify-content: center; align-items: center; flex-direction: column; }
         .char-img { max-width: 100%; max-height: 200px; object-fit: contain; transition: transform 0.1s; }
         .char-name { font-size: 20px; font-weight: bold; margin-top: 10px; color: #5d4037; }
-        /* 圖片載入失敗時的替代 Emoji */
         .fallback-emoji { font-size: 100px; display: none; }
 
-        /* 打中時的特效類別 */
+        /* 特效動畫 */
         .hit-flash { animation: flashBg 0.3s ease-out; }
         .tiger-shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
 
-        /* 戰利品與計分 */
+        /* 計分板與戰利品區 */
         #scoreBoard { font-size: 28px; font-weight: bold; color: #5d4037; margin: 15px; }
         #tigerContainer { margin: 20px auto; max-width: 800px; min-height: 120px; background-color: #fff; border: 3px dashed #ffb74d; border-radius: 15px; padding: 15px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
         .mini-tiger { width: 60px; height: 60px; object-fit: contain; animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .mini-tiger-fallback { font-size: 50px; animation: popIn 0.4s; }
 
-        /* 遊戲結束畫面 */
+        /* 結束畫面 */
         #gameOverModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); color: white; justify-content: center; align-items: center; flex-direction: column; z-index: 100; }
         #restartBtn { padding: 15px 30px; font-size: 24px; background-color: #4caf50; color: white; border: none; border-radius: 8px; cursor: pointer; }
 
-        /* 動畫關鍵影格 */
+        /* 頁尾宣告 */
+        footer { margin-top: 30px; padding: 15px; font-size: 14px; color: #795548; border-top: 1px solid #ffcc80; }
+
         @keyframes flashBg {
             0% { background-color: #fff3e0; }
             50% { background-color: #ffffcc; box-shadow: inset 0 0 50px #ffeb3b; }
@@ -64,61 +66,50 @@
 </head>
 <body>
 
-    <h1>🐯 武松打虎 - 體感挑戰賽 🐯</h1>
-    
-    <div class="control-panel">
-        <!-- 
-          連線邏輯說明：
-          1. 平常只顯示「建立連線」。
-          2. 若連線中斷，會顯示紅色的「重置連線狀態」按鈕。
-          3. 操作者必須先點紅色按鈕清除狀態，才能再次點綠色按鈕連線。
-        -->
-        <button id="connectBtn" class="btn">🟢 建立連線 (開使遊戲)</button>
-        <button id="disconnectBtn" class="btn">🔴 中斷/重置連線狀態</button>
-        <span id="connectionStatus">狀態：未連線</span>
-    </div>
-    
-    <div id="scoreBoard">目前戰績：<span id="scoreText">0</span> / 10 隻</div>
-
-    <!-- 遊戲主舞台 -->
-    <div id="gameStage">
-        <!-- 左邊：武松 -->
-        <div class="character-container">
-            <!-- 
-              核心修改：圖片標籤增加 onerror 事件。
-              如果 ws1.png 讀取失敗，this.style.display='none' 會隱藏自己，
-              this.nextElementSibling.style.display='block' 會顯示下一個兄弟元素(即 fallback-emoji)。
-            -->
-            <img id="wusongImg" class="char-img" src="ws1.png" alt="武松" 
-                 onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-            <span class="fallback-emoji">🧑‍🌾</span>
-            <div class="char-name">武松</div>
+    <div class="main-content">
+        <h1>🐯 武松打虎 - 體感挑戰賽 🐯</h1>
+        
+        <div class="control-panel">
+            <button id="connectBtn" class="btn">🟢 建立連線 (開始遊戲)</button>
+            <button id="disconnectBtn" class="btn">🔴 中斷/重置連線狀態</button>
+            <span id="connectionStatus">狀態：未連線</span>
         </div>
         
-        <!-- 右邊：大老虎 -->
-        <div class="character-container">
-            <img id="tigerImg" class="char-img" src="wstiger.png" alt="大老虎"
-                 onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-            <span class="fallback-emoji">🐯</span>
-            <div class="char-name">大老虎</div>
+        <div id="scoreBoard">目前戰績：<span id="scoreText">0</span> / 10 隻</div>
+
+        <div id="gameStage">
+            <div class="character-container">
+                <img id="wusongImg" class="char-img" src="ws1.png" alt="武松" 
+                     onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                <span class="fallback-emoji">🧑‍🌾</span>
+                <div class="char-name">武松</div>
+            </div>
+            
+            <div class="character-container">
+                <img id="tigerImg" class="char-img" src="wstiger.png" alt="大老虎"
+                     onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                <span class="fallback-emoji">🐯</span>
+                <div class="char-name">大老虎</div>
+            </div>
         </div>
+
+        <h3>收服的小老虎戰利品：</h3>
+        <div id="tigerContainer"></div>
+
+        <div id="gameOverModal">
+            <h2 style="font-size: 50px; color: #ffd54f;">🎉 恭喜大獲全勝！ 🎉</h2>
+            <p style="font-size: 28px;">村莊恢復了和平！</p>
+            <button id="restartBtn" onclick="resetGame()">再來一局</button>
+        </div>
+
+        <audio id="hitSound" src="https://www.soundjay.com/human/sounds/punch-slap-2.mp3" preload="auto"></audio>
     </div>
 
-    <h3>收服的小老虎戰利品：</h3>
-    <div id="tigerContainer"></div>
-
-    <div id="gameOverModal">
-        <h2 style="font-size: 50px; color: #ffd54f;">🎉 恭喜大獲全勝！ 🎉</h2>
-        <p style="font-size: 28px;">村莊恢復了和平！</p>
-        <button id="restartBtn" onclick="resetGame()">再來一局</button>
-    </div>
-
-    <!-- 音效檔：這裡使用一個短促有力的打擊聲示範 -->
-    <!-- 老師可以替換成自己喜歡的 mp3 檔案 -->
-    <audio id="hitSound" src="https://www.soundjay.com/human/sounds/punch-slap-2.mp3" preload="auto"></audio>
+    <footer>Taoyuan City Jianguo Junior High School Teacher Chan Chih Chieh (2026)</footer>
 
     <script>
-        // Micro:bit 藍牙 UART 服務 UUID (固定)
+        // chan chih chieh jjjan
+        
         const UART_SERVICE_UUID = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
         const TX_CHARACTERISTIC_UUID = '6e400002-b5a3-f393-e0a9-e50e24dcca9e';
 
@@ -127,18 +118,12 @@
         let score = 0;
         let receivedBuffer = "";
         const hitSound = document.getElementById('hitSound');
-        // 設定音量 (0.0 ~ 1.0)
         hitSound.volume = 0.8; 
 
         const connectBtn = document.getElementById('connectBtn');
         const disconnectBtn = document.getElementById('disconnectBtn');
         const statusText = document.getElementById('connectionStatus');
 
-        // ===========================
-        // 藍牙連線管理 (核心修改)
-        // ===========================
-
-        // 1. 建立連線
         connectBtn.addEventListener('click', async () => {
             try {
                 statusText.innerText = "狀態：搜尋裝置中...";
@@ -147,7 +132,6 @@
                     optionalServices: [UART_SERVICE_UUID]
                 });
 
-                // 監聽「非預期斷線」事件 (重要！)
                 bluetoothDevice.addEventListener('gattserverdisconnected', onDisconnected);
 
                 statusText.innerText = "狀態：連線中...";
@@ -158,62 +142,48 @@
                 await characteristic.startNotifications();
                 characteristic.addEventListener('characteristicvaluechanged', handleDataChanged);
                 
-                // 更新 UI 狀態
                 updateConnectionUI(true);
                 console.log("連線成功！");
 
             } catch (error) {
                 console.error("連線失敗", error);
                 statusText.innerText = `狀態：連線失敗 (${error.message || '使用者取消'})`;
-                // 如果失敗，確保按鈕狀態正確
                 updateConnectionUI(false);
             }
         });
 
-        // 2. 手動中斷/重置連線
         disconnectBtn.addEventListener('click', () => {
             if (gattServer && gattServer.connected) {
                 statusText.innerText = "狀態：正在中斷...";
                 gattServer.disconnect(); 
-                // disconnect() 會觸發 gattserverdisconnected 事件，
-                // 所以主要的清理邏輯都在 onDisconnected 函式裡執行。
             } else {
-                // 如果已經斷了，直接執行清理 UI
                 onDisconnected();
             }
         });
 
-        // 3. 斷線處理函式 (無論是手動斷開還是意外斷開都會執行)
         function onDisconnected() {
             console.log("已斷線");
             updateConnectionUI(false);
-            // 清除裝置紀錄
             bluetoothDevice = null;
             gattServer = null;
         }
 
-        // 更新連線介面狀態的輔助函式
         function updateConnectionUI(isConnected) {
             if (isConnected) {
                 connectBtn.innerText = "🟢 已連線，遊戲開始！";
                 connectBtn.disabled = true;
-                disconnectBtn.style.display = "inline-block"; // 顯示中斷按鈕
+                disconnectBtn.style.display = "inline-block";
                 statusText.innerText = "狀態：連線穩定";
                 statusText.style.color = "green";
             } else {
                 connectBtn.innerText = "🟢 建立連線 (開始遊戲)";
                 connectBtn.disabled = false;
-                disconnectBtn.style.display = "none"; // 隱藏中斷按鈕
+                disconnectBtn.style.display = "none";
                 statusText.innerText = "狀態：未連線 (請重新連線)";
                 statusText.style.color = "#d32f2f";
             }
         }
 
-        // ===========================
-        // 遊戲邏輯與聲光回饋
-        // ===========================
-
-        // 處理接收到的藍牙資料
         function handleDataChanged(event) {
             const value = event.target.value;
             const decoder = new TextDecoder('utf-8');
@@ -230,41 +200,30 @@
             }
         }
 
-        // 武松攻擊觸發 (聲光強化版)
         function wusongAttack() {
             if (score >= 10) return;
 
-            // --- 聲光效果強化區 ---
-            
-            // 1. 播放音效 (重置播放時間，確保密集觸發時也能發聲)
             hitSound.currentTime = 0;
-            // 瀏覽器有時會阻擋自動播放，用 catch 處理
             hitSound.play().catch(e => console.log("音效播放被阻擋，請先與頁面互動"));
 
-            // 2. 視覺震撼：背景閃爍
             document.body.classList.add('hit-flash');
 
-            // 3. 視覺震撼：武松換圖打擊動作
             const wusongImg = document.getElementById('wusongImg');
-            // 只有在圖片成功載入時才切換，避免切換到破圖
             if (wusongImg.style.display !== 'none') {
-                wusongImg.src = "ws2.png"; // 切換成打擊圖
+                wusongImg.src = "ws2.png"; 
             }
 
-            // 4. 視覺震撼：老虎受擊晃動
             const tigerContainer = document.getElementById('tigerImg').parentElement;
             tigerContainer.classList.add('tiger-shake');
             
-            // 5. 延遲後復原狀態 (300毫秒後復原)
             setTimeout(() => {
                 document.body.classList.remove('hit-flash');
                 tigerContainer.classList.remove('tiger-shake');
                 if (wusongImg.style.display !== 'none') {
-                    wusongImg.src = "ws1.png"; // 切換回準備圖
+                    wusongImg.src = "ws1.png"; 
                 }
             }, 300);
 
-            // --- 計分邏輯 ---
             score++;
             document.getElementById('scoreText').innerText = score;
             addMiniTiger();
@@ -276,23 +235,18 @@
             }
         }
 
-        // 增加小老虎戰利品 (包含圖片備援)
         function addMiniTiger() {
             const container = document.getElementById('tigerContainer');
-            
-            // 嘗試建立圖片
             const img = document.createElement('img');
             img.src = 'wstiger.png';
             img.className = 'mini-tiger';
             img.alt = '小老虎';
             
-            // 建立備援的 Emoji span
             const fallbackSpan = document.createElement('span');
             fallbackSpan.className = 'mini-tiger-fallback';
             fallbackSpan.innerText = '🐯';
-            fallbackSpan.style.display = 'none'; // 預設隱藏
+            fallbackSpan.style.display = 'none';
 
-            // 設定圖片載入失敗的行為
             img.onerror = function() {
                 this.style.display = 'none';
                 fallbackSpan.style.display = 'inline';
@@ -302,7 +256,6 @@
             container.appendChild(fallbackSpan);
         }
 
-        // 重設遊戲
         function resetGame() {
             score = 0;
             document.getElementById('scoreText').innerText = score;
