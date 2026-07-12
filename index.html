@@ -24,16 +24,16 @@
         #restartBtn { background-color: #607d8b; color: white; padding: 10px 20px; font-size: 18px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-left: 20px; }
         #restartBtn:hover { background-color: #455a64; }
 
-        /* 对战主要容器：预设先隐藏，等点击人数后才显示 */
+        /* 對戰主要容器：預設先隱藏，等點擊人數後才顯示 */
         #battlefield { display: none; justify-content: center; gap: 15px; flex: 1; padding: 0 10px; flex-wrap: wrap; }
 
-        /* 针对不同人数的宽度分配 */
-        .players-1 .player-zone { max-width: 600px; }
+        /* 針對不同人數的寬度分配 */
+        .players-1 .player-zone { max-width: 700px; width: 100%; }
         .players-2 .player-zone { max-width: 48%; }
         .players-3 .player-zone { max-width: 32%; }
         .players-4 .player-zone { max-width: 24%; min-width: 250px; }
 
-        /* 单一玩家的区域 */
+        /* 單一玩家的區域 */
         .player-zone { 
             flex: 1; 
             background-color: #ffcc80; 
@@ -49,14 +49,14 @@
 
         .player-title { font-size: 22px; font-weight: bold; color: #4e342e; margin-bottom: 5px; }
         
-        /* 连线按钮区域 */
+        /* 連線按鈕區域 */
         .connect-area { margin-bottom: 10px; }
         .btn-connect { background-color: #ff9800; padding: 6px 12px; font-size: 15px; font-weight: bold; color: white; border: none; border-radius: 8px; cursor: pointer; transition: background 0.3s; }
         .btn-connect:hover { background-color: #e65100; }
         .btn-connect:disabled { background-color: #bdbdbd; cursor: not-allowed; }
         .status-text { display: block; font-size: 13px; margin-top: 4px; color: #d32f2f; font-weight: bold; }
 
-        /* 游戏小舞台 */
+        /* 遊戲小舞台 (2人以上模式預設) */
         .stage { 
             width: 100%; 
             height: 220px; 
@@ -65,9 +65,10 @@
             border-radius: 10px;
             margin-bottom: 10px;
             overflow: visible; 
+            transition: height 0.2s;
         }
 
-        /* 角色容器改为绝对定位 */
+        /* 角色容器改為絕對定位 */
         .char-container { 
             position: absolute; 
             bottom: 5px; 
@@ -75,7 +76,7 @@
             flex-direction: column; 
         }
         
-        /* 武松：向左移量加倍（由-150px改為-300px） */
+        /* 武松：2人以上模式向左移量加倍 (-300px) */
         .wusong-wrap { 
             z-index: 2; 
             left: 50%;
@@ -84,7 +85,7 @@
         } 
         .wusong-wrap .char-name { margin-left: 35px; } 
 
-        /* 老虎：向右移量加倍（由-160px改為-320px） */
+        /* 老虎：2人以上模式向右移量加倍 (-320px) */
         .tiger-wrap { 
             z-index: 1; 
             right: 50%;
@@ -92,7 +93,7 @@
             align-items: center; 
         }
 
-        /* 图片设定：固定 180px */
+        /* 圖片設定：2人以上模式固定 180px */
         .char-img { 
             height: 180px; 
             width: auto;
@@ -100,18 +101,38 @@
             object-fit: contain; 
         }
 
-        /* 针对武松：变形基准点设定为左下角 */
+        /* 針對武松：變形基準點設定為左下角 */
         .wusong-wrap .char-img {
              transform-origin: bottom left; 
              object-position: bottom left;
         }
 
-        /* 针对老虎：默认缩小 50%，变形基准点设为底部中间 */
+        /* 針對老虎：預設縮小 50%，變形基準點設為底部中間 */
         .tiger-wrap .char-img {
             transform: scale(0.5); 
             transform-origin: bottom center; 
             object-position: bottom center;
         }
+
+        /* ========================================================
+           ✨ 核心修改：當只有 1 人遊玩 (.players-1) 時的專屬覆蓋樣式
+           ======================================================== */
+        .players-1 .stage { 
+            height: 400px; /* 放大角色後，加高舞台避免超出 */
+        }
+        .players-1 .char-img { 
+            height: 360px; /* 武松與老虎的顯示尺寸直接放大一倍 */
+        }
+        .players-1 .wusong-wrap { 
+            margin-left: -100px; /* 武松往左 100px */
+        }
+        .players-1 .tiger-wrap { 
+            margin-right: -100px; /* 老虎往右 100px，兩者中心距離剛好 200px */
+        }
+        .players-1 .wusong-strike { 
+            animation: strikeForward1P 0.2s ease-out; /* 1人專屬近距離打擊動畫 */
+        }
+        /* ======================================================== */
 
         .impact-effect {
              position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);
@@ -130,7 +151,7 @@
 
         /* 動畫套用 */
         .wusong-strike { animation: strikeForward 0.2s ease-out; }
-        .tiger-hit { animation: hitShake 0.3s ease-out; } /* 修正震動動畫呼叫方式 */
+        .tiger-hit { animation: hitShake 0.3s ease-out; } 
         .show-impact { animation: powEffect 0.3s ease-out; }
         .hit-flash { animation: flashBg 0.2s ease-out; }
         
@@ -141,14 +162,21 @@
 
         @keyframes flashBg { 0% { background-color: #ffcc80; } 30% { background-color: #ff5252; box-shadow: inset 0 0 50px #ffeb3b; } 100% { background-color: #ffcc80; } }
         
-        /* 武松打击动画：因應距離拉長，向前平移加大到 80px */
+        /* 2人以上模式：武松打擊動畫（大跨步 80px） */
         @keyframes strikeForward { 
             0% { transform: translateX(0); } 
             50% { transform: translateX(80px); } 
             100% { transform: translateX(0); } 
         }
         
-        /* 老虎震动动画：獨立計算位移，不再與外層 scale 互相干擾，百分百消除縮小問題 */
+        /* ✨ 1人模式專屬：武松打擊動畫（因為距離拉近，小跨步 40px 最完美） */
+        @keyframes strikeForward1P { 
+            0% { transform: translateX(0); } 
+            50% { transform: translateX(40px); } 
+            100% { transform: translateX(0); } 
+        }
+        
+        /* 老虎震動動畫：百分百消除縮小問題 */
         @keyframes hitShake { 
             0%, 100% { transform: translate(0, 0); } 
             20%, 60% { transform: translate(-15px, 0) rotate(-3deg); } 
@@ -170,7 +198,7 @@
 <body>
 
     <div class="header-container">
-        <img src="ws2.png" class="header-icon" alt="武松打击">
+        <img src="ws2.png" class="header-icon" alt="武松打擊">
         <h1>武松打虎</h1>
         <img src="wstiger1.png" class="header-icon" alt="老虎">
     </div>
