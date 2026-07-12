@@ -24,16 +24,16 @@
         #restartBtn { background-color: #607d8b; color: white; padding: 10px 20px; font-size: 18px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-left: 20px; }
         #restartBtn:hover { background-color: #455a64; }
 
-        /* 對戰主要容器 */
+        /* 对战主要容器 */
         #battlefield { display: none; justify-content: center; gap: 15px; flex: 1; padding: 0 10px; flex-wrap: wrap; align-items: flex-start; }
 
-        /* 針對不同人數的寬度分配 */
+        /* 针对不同人数的宽度分配 */
         .players-1 .player-zone { max-width: 800px; width: 100%; }
         .players-2 .player-zone { max-width: 48%; width: 100%; }
         .players-3 .player-zone { max-width: 32%; width: 100%; }
         .players-4 .player-zone { max-width: 24%; min-width: 240px; width: 100%; }
 
-        /* 單一玩家的區域 */
+        /* 单一玩家的区域 */
         .player-zone { 
             flex: 1; 
             background-color: #ffcc80; 
@@ -49,14 +49,14 @@
 
         .player-title { font-size: 22px; font-weight: bold; color: #4e342e; margin-bottom: 5px; }
         
-        /* 連線按鈕區域 */
+        /* 连线按钮区域 */
         .connect-area { margin-bottom: 10px; }
         .btn-connect { background-color: #ff9800; padding: 6px 12px; font-size: 15px; font-weight: bold; color: white; border: none; border-radius: 8px; cursor: pointer; transition: background 0.3s; }
         .btn-connect:hover { background-color: #e65100; }
         .btn-connect:disabled { background-color: #bdbdbd; cursor: not-allowed; }
         .status-text { display: block; font-size: 13px; margin-top: 4px; color: #d32f2f; font-weight: bold; }
 
-        /* 遊戲舞台：寬高比鎖定 16:9，達成全自動等比例縮放 */
+        /* 游戏舞台：宽高比锁定 16:9 */
         .stage { 
             width: 100%; 
             aspect-ratio: 16 / 9; 
@@ -67,38 +67,43 @@
             overflow: visible; 
         }
 
-        /* 角色基礎容器 */
+        /* 角色基础容器 */
         .char-container { 
             position: absolute; 
             bottom: 5px; 
             display: flex; 
             flex-direction: column;
             align-items: center;
+            transition: height 0.15s ease-out; /* 讓高度切換時有流暢的微縮感 */
         }
         
-        /* 武松基礎高度：佔舞台 75% */
+        /* 武松基礎高度：平時佔舞台 75% */
         .wusong-wrap { 
             height: 75%;
             z-index: 2; 
-            left: 25%; /* ✨ 精準定位在左側四分之一處 */
+            left: 25%; 
             transform: translateX(-50%);
         } 
 
-        /* 老虎基礎高度：設定為 37.5%（剛好是武松 75% 的一半，即縮小為 50%） */
+        /* ✨ 核心變更 1：武松打下（觸發動態樣式）時，尺寸縮小為舞台高度的 60% */
+        .wusong-wrap.wusong-strike {
+            height: 60%;
+        }
+
+        /* 老虎基礎高度：設定為 37.5%（縮小為武松原始尺寸的 50%） */
         .tiger-wrap { 
-            height: 37.5%; /* ✨ 尺寸縮小為 50% */
+            height: 37.5%; 
             z-index: 1; 
-            right: 25%; /* ✨ 精準定位在右側四分之一處 */
+            right: 25%; 
             transform: translateX(50%);
         }
 
-        /* 圖片設定：填滿容器高度，寬度自適應 */
+        /* 圖片設定 */
         .char-img { 
             height: 100%; 
             width: auto;
             max-width: none;
             object-fit: contain; 
-            transition: transform 0.1s;
         }
 
         .wusong-wrap .char-img { transform-origin: bottom center; }
@@ -113,10 +118,18 @@
             white-space: nowrap;
         }
 
+        /* ✨ 核心變更 2：爆炸圖精準移到老虎的頭頂上方（對齊老虎的水平 1/4 線，高於老虎身高） */
         .impact-effect {
-             position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);
-             font-size: 5vw; color: red; text-shadow: 2px 2px 0 yellow, -2px -2px 0 yellow;
-             opacity: 0; z-index: 10; pointer-events: none;
+             position: absolute; 
+             bottom: 42%; /* 老虎身高 37.5% + 底部 5px，設在 42% 剛好在頭頂上方 */
+             right: 25%; 
+             transform: translate(50%, 0) scale(0.5);
+             font-size: 5vw; 
+             color: red; 
+             text-shadow: 2px 2px 0 yellow, -2px -2px 0 yellow;
+             opacity: 0; 
+             z-index: 10; 
+             pointer-events: none;
         }
 
         .score-board { font-size: 18px; font-weight: bold; color: #5d4037; margin: 5px 0; }
@@ -128,7 +141,7 @@
         }
         .mini-tiger { height: 35px; object-fit: contain; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 
-        /* 動畫套用：在原有 translateX 基礎上做平移，完美適應各種人數尺寸 */
+        /* 動畫套用 */
         .wusong-strike { animation: strikeForward 0.2s ease-out; }
         .tiger-hit .char-img { animation: hitShake 0.3s ease-out; } 
         .show-impact { animation: powEffect 0.3s ease-out; }
@@ -141,7 +154,7 @@
 
         @keyframes flashBg { 0% { background-color: #ffcc80; } 30% { background-color: #ff5252; box-shadow: inset 0 0 50px #ffeb3b; } 100% { background-color: #ffcc80; } }
         
-        /* 武松打擊動畫：從 -50% 的中心點向前跨步到 10%，收招回到 -50% */
+        /* 武松打擊動畫 */
         @keyframes strikeForward { 
             0% { transform: translateX(-50%); } 
             50% { transform: translateX(10%); } 
@@ -155,7 +168,12 @@
             40%, 80% { transform: translate(10px, 0) rotate(3deg); } 
         }
         
-        @keyframes powEffect { 0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); } 50% { opacity: 1; transform: translate(-50%, -50%) scale(1.5) rotate(15deg); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(2); } }
+        /* 爆炸圖特效：從老虎頭頂向上彈出放大 */
+        @keyframes powEffect { 
+            0% { opacity: 0; transform: translate(50%, 20px) scale(0.5); } 
+            50% { opacity: 1; transform: translate(50%, -20px) scale(1.5) rotate(15deg); } 
+            100% { opacity: 0; transform: translate(50%, -40px) scale(2); } 
+        }
         @keyframes popIn { 0% { transform: scale(0) rotate(-180deg); } 80% { transform: scale(1.2) rotate(10deg); } 100% { transform: scale(1) rotate(0deg); } }
         
         @keyframes spinWin { 
@@ -163,7 +181,8 @@
             100% { transform: translateX(-50%) scale(1.5) rotate(360deg); filter: drop-shadow(0 0 15px #fff); } 
         }
 
-        .time-info { margin-top: 20px; font-size: 14px; color: #5d4037; font-weight: bold; }
+        /* ✨ 核心變更 3：調整時間顯示區樣式，使其字型、顏色完全等同下方 footer */
+        .time-info { margin-top: 20px; font-size: 12px; color: #795548; font-weight: normal; }
         footer { margin-top: 5px; padding: 5px; font-size: 12px; color: #795548; border-top: 1px solid #ffe0b2;}
     </style>
 </head>
@@ -302,6 +321,7 @@
             updateGeneratedTime();
         };
 
+        /* ✨ 核心變更 3：顯示格式改為「最後修改：...」 */
         function updateGeneratedTime() {
             const now = new Date();
             const year = now.getFullYear();
@@ -311,7 +331,7 @@
             const minutes = String(now.getMinutes()).padStart(2, '0');
             const seconds = String(now.getSeconds()).padStart(2, '0');
             
-            document.getElementById('timeDisplay').innerText = `程式產出時間：${year}-${month}-${date} ${hours}:${minutes}:${seconds}`;
+            document.getElementById('timeDisplay').innerText = `最後修改：${year}-${month}-${date} ${hours}:${minutes}:${seconds}`;
         }
 
         function setPlayerCount(num, doUnlock = true) {
@@ -436,7 +456,7 @@
             const wsImg = document.getElementById(`ws-img-${playerId}`);
             const wsWrap = document.getElementById(`wusong-wrap-${playerId}`);
             wsImg.src = "ws2.png";
-            wsWrap.classList.add('wusong-strike');
+            wsWrap.classList.add('wusong-strike'); /* 此處會同時觸發平移與 60% 高度微縮 */
 
             const tgImg = document.getElementById(`tg-img-${playerId}`);
             const tgWrap = document.getElementById(`tiger-wrap-${playerId}`);
