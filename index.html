@@ -7,11 +7,11 @@
     <style>
         body { font-family: 'Microsoft JhengHei', sans-serif; text-align: center; background-color: #fff3e0; margin: 0; padding: 20px; transition: background-color 0.1s; display: flex; flex-direction: column; min-height: 95vh; }
         .main-content { flex: 1; }
-        h1 { color: #d84315; }
+        h1 { color: #d84315; margin-bottom: 5px; }
         
         /* 控制面板區域 */
-        .control-panel { margin-bottom: 20px; padding: 15px; background-color: #ffe0b2; border-radius: 10px; display: inline-block; }
-        .btn { padding: 12px 24px; font-size: 18px; font-weight: bold; color: white; border: none; border-radius: 8px; cursor: pointer; margin: 5px; transition: all 0.3s; }
+        .control-panel { margin-bottom: 15px; padding: 10px; background-color: #ffe0b2; border-radius: 10px; display: inline-block; }
+        .btn { padding: 10px 20px; font-size: 16px; font-weight: bold; color: white; border: none; border-radius: 8px; cursor: pointer; margin: 5px; transition: all 0.3s; }
         #connectBtn { background-color: #ff9800; }
         #connectBtn:hover { background-color: #e65100; }
         #connectBtn:disabled { background-color: #bdbdbd; cursor: not-allowed; }
@@ -21,47 +21,136 @@
 
         #connectionStatus { font-weight: bold; margin-left: 10px; color: #555; }
 
-        /* 遊戲主舞台 */
-        #gameStage { margin: 20px auto; max-width: 900px; background-color: #ffcc80; border: 5px solid #8d6e63; border-radius: 20px; height: 350px; display: flex; align-items: center; justify-content: space-around; position: relative; overflow: hidden; }
+        /* 遊戲主舞台 - 調整版面讓兩者靠近 */
+        #gameStage { 
+            margin: 10px auto; 
+            max-width: 800px; 
+            background-color: #ffcc80; 
+            border: 5px solid #8d6e63; 
+            border-radius: 20px; 
+            height: 400px; /* 增加高度 */
+            display: flex; 
+            align-items: flex-end; /* 底部對齊 */
+            justify-content: center; /* 置中 */
+            position: relative; 
+            overflow: hidden; 
+            padding-bottom: 20px;
+        }
         
-        /* 角色圖片與備援容器 */
-        .character-container { position: relative; width: 250px; height: 250px; display: flex; justify-content: center; align-items: center; flex-direction: column; }
-        .char-img { max-width: 100%; max-height: 200px; object-fit: contain; transition: transform 0.1s; }
-        .char-name { font-size: 20px; font-weight: bold; margin-top: 10px; color: #5d4037; }
+        /* 角色圖片容器 - 調整相對位置 */
+        .character-container { 
+            position: relative; 
+            display: flex; 
+            justify-content: flex-end; 
+            align-items: center; 
+            flex-direction: column; 
+        }
+        
+        /* 武松容器，微調位置 */
+        #wusong-container {
+            z-index: 2; /* 讓武松的棍子可以蓋在老虎上方 */
+            margin-right: -40px; /* 向右靠，與老虎重疊 */
+        }
+        
+        /* 老虎容器，微調位置 */
+        #tiger-container {
+            z-index: 1;
+            margin-left: -40px; /* 向左靠，與武松重疊 */
+        }
+
+        .char-img { 
+            max-width: 100%; 
+            /* 調整預設大小 */
+            height: 300px; 
+            object-fit: contain; 
+            transition: transform 0.1s; 
+        }
+        
+        /* 針對武松打擊圖的特別調整，確保棍子位置正確 */
+        #wusongImg {
+             transform-origin: bottom center; /* 動畫基準點設在底部 */
+        }
+
+        .char-name { font-size: 20px; font-weight: bold; margin-top: 10px; color: #5d4037; background-color: rgba(255,255,255,0.7); padding: 2px 10px; border-radius: 10px;}
         .fallback-emoji { font-size: 100px; display: none; }
 
         /* 特效動畫 */
-        .hit-flash { animation: flashBg 0.3s ease-out; }
-        .tiger-shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+        /* 震撼的背景閃爍 */
+        .hit-flash { animation: flashBg 0.2s ease-out; }
+        
+        /* 武松打擊時的輕微前傾 */
+        .wusong-strike { animation: strikeForward 0.2s ease-out; }
+
+        /* 老虎被打到的劇烈震動與縮放 */
+        .tiger-hit { animation: hitShake 0.3s cubic-bezier(.36,.07,.19,.97) both; filter: brightness(1.2) contrast(1.2); }
 
         /* 計分板與戰利品區 */
-        #scoreBoard { font-size: 28px; font-weight: bold; color: #5d4037; margin: 15px; }
-        #tigerContainer { margin: 20px auto; max-width: 800px; min-height: 120px; background-color: #fff; border: 3px dashed #ffb74d; border-radius: 15px; padding: 15px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
-        .mini-tiger { width: 60px; height: 60px; object-fit: contain; animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        #scoreBoard { font-size: 24px; font-weight: bold; color: #5d4037; margin: 10px; }
+        #tigerContainer { margin: 10px auto; max-width: 800px; min-height: 100px; background-color: #fff; border: 3px dashed #ffb74d; border-radius: 15px; padding: 10px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center;}
+        
+        /* 收集到的小老虎圖案 */
+        .mini-tiger { height: 60px; object-fit: contain; animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .mini-tiger-fallback { font-size: 50px; animation: popIn 0.4s; }
 
         /* 結束畫面 */
         #gameOverModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); color: white; justify-content: center; align-items: center; flex-direction: column; z-index: 100; }
-        #restartBtn { padding: 15px 30px; font-size: 24px; background-color: #4caf50; color: white; border: none; border-radius: 8px; cursor: pointer; }
+        #restartBtn { padding: 15px 30px; font-size: 24px; background-color: #4caf50; color: white; border: none; border-radius: 8px; cursor: pointer; margin-top:20px; }
 
         /* 頁尾宣告 */
-        footer { margin-top: 30px; padding: 15px; font-size: 14px; color: #795548; border-top: 1px solid #ffcc80; }
+        footer { margin-top: 20px; padding: 10px; font-size: 14px; color: #795548; border-top: 1px solid #ffcc80; }
 
+        /* 動畫定義 */
         @keyframes flashBg {
             0% { background-color: #fff3e0; }
-            50% { background-color: #ffffcc; box-shadow: inset 0 0 50px #ffeb3b; }
+            30% { background-color: #ff0000; box-shadow: inset 0 0 100px #ffeb3b; } /* 更強烈的紅黃閃光 */
             100% { background-color: #fff3e0; }
         }
-        @keyframes shake {
-            10%, 90% { transform: translate3d(-2px, 0, 0) rotate(-2deg); }
-            20%, 80% { transform: translate3d(4px, 0, 0) rotate(3deg); }
-            30%, 50%, 70% { transform: translate3d(-6px, 0, 0) rotate(-4deg); }
-            40%, 60% { transform: translate3d(6px, 0, 0) rotate(4deg); }
+        
+        @keyframes strikeForward {
+             0% { transform: scale(1) translateX(0); }
+             50% { transform: scale(1.05) translateX(10px); } /* 稍微變大並往前 */
+             100% { transform: scale(1) translateX(0); }
         }
+
+        @keyframes hitShake {
+            0% { transform: translate(0, 0) scale(1); }
+            20% { transform: translate(-10px, 10px) scale(0.9) rotate(-5deg); }
+            40% { transform: translate(10px, -10px) scale(0.9) rotate(5deg); }
+            60% { transform: translate(-10px, -10px) scale(0.9) rotate(-5deg); }
+            80% { transform: translate(10px, 10px) scale(0.9) rotate(5deg); }
+            100% { transform: translate(0, 0) scale(1); }
+        }
+        
         @keyframes popIn {
-            0% { transform: scale(0); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
+            0% { transform: scale(0) rotate(-180deg); opacity: 0; }
+            80% { transform: scale(1.2) rotate(10deg); }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
         }
+        
+        /* 新增：受擊特效圖層 */
+        #impact-effect {
+             position: absolute;
+             top: 40%;
+             left: 50%;
+             transform: translate(-50%, -50%);
+             font-size: 100px;
+             color: red;
+             text-shadow: 2px 2px 0 yellow, -2px -2px 0 yellow, 2px -2px 0 yellow, -2px 2px 0 yellow;
+             opacity: 0;
+             z-index: 10;
+             pointer-events: none;
+        }
+        
+        .show-impact {
+             animation: powEffect 0.3s ease-out;
+        }
+        
+        @keyframes powEffect {
+             0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+             50% { opacity: 1; transform: translate(-50%, -50%) scale(1.5) rotate(15deg); }
+             100% { opacity: 0; transform: translate(-50%, -50%) scale(2); }
+        }
+
     </style>
 </head>
 <body>
@@ -78,15 +167,20 @@
         <div id="scoreBoard">目前戰績：<span id="scoreText">0</span> / 10 隻</div>
 
         <div id="gameStage">
-            <div class="character-container">
+            <!-- 爆擊特效層 -->
+            <div id="impact-effect">💥</div>
+
+            <!-- 武松區 (左側) -->
+            <div id="wusong-container" class="character-container">
                 <img id="wusongImg" class="char-img" src="ws1.png" alt="武松" 
                      onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
                 <span class="fallback-emoji">🧑‍🌾</span>
                 <div class="char-name">武松</div>
             </div>
             
-            <div class="character-container">
-                <img id="tigerImg" class="char-img" src="wstiger.png" alt="大老虎"
+            <!-- 老虎區 (右側) -->
+            <div id="tiger-container" class="character-container">
+                <img id="tigerImg" class="char-img" src="wstiger1.png" alt="大老虎"
                      onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
                 <span class="fallback-emoji">🐯</span>
                 <div class="char-name">大老虎</div>
@@ -97,19 +191,22 @@
         <div id="tigerContainer"></div>
 
         <div id="gameOverModal">
-            <h2 style="font-size: 50px; color: #ffd54f;">🎉 恭喜大獲全勝！ 🎉</h2>
-            <p style="font-size: 28px;">村莊恢復了和平！</p>
+            <h2 style="font-size: 60px; color: #ffd54f; margin: 0;">🎉 恭喜大獲全勝！ 🎉</h2>
+            <img src="wstiger2.png" style="height: 150px; margin: 20px 0;" onerror="this.style.display='none'">
+            <p style="font-size: 32px; margin: 10px 0;">村莊恢復了和平！</p>
             <button id="restartBtn" onclick="resetGame()">再來一局</button>
         </div>
 
-        <audio id="hitSound" src="https://www.soundjay.com/human/sounds/punch-slap-2.mp3" preload="auto"></audio>
+        <!-- 音效檔：使用更強烈的打擊音效 -->
+        <audio id="hitSound" src="https://www.soundjay.com/human/sounds/punch-2.mp3" preload="auto"></audio>
+        <!-- 可以加入第二種音效增加豐富度 -->
+        <audio id="roarSound" src="https://www.soundjay.com/nature/sounds/lion-roar-1.mp3" preload="auto"></audio>
     </div>
 
+    <!-- 開發者版權宣告 -->
     <footer>Taoyuan City Jianguo Junior High School Teacher Chan Chih Chieh (2026)</footer>
 
     <script>
-        // chan chih chieh jjjan
-        
         const UART_SERVICE_UUID = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
         const TX_CHARACTERISTIC_UUID = '6e400002-b5a3-f393-e0a9-e50e24dcca9e';
 
@@ -118,11 +215,22 @@
         let score = 0;
         let receivedBuffer = "";
         const hitSound = document.getElementById('hitSound');
-        hitSound.volume = 0.8; 
+        const roarSound = document.getElementById('roarSound');
+        hitSound.volume = 1.0; 
+        roarSound.volume = 0.5;
 
         const connectBtn = document.getElementById('connectBtn');
         const disconnectBtn = document.getElementById('disconnectBtn');
         const statusText = document.getElementById('connectionStatus');
+        
+        let isAttacking = false; // 防止連續快速觸發導致動畫錯亂
+
+        // 開發測試用：允許點擊螢幕也能觸發攻擊 (方便沒有 micro:bit 時測試)
+        document.getElementById('gameStage').addEventListener('click', () => {
+             if(score < 10 && !isAttacking) {
+                 wusongAttack();
+             }
+        });
 
         connectBtn.addEventListener('click', async () => {
             try {
@@ -194,53 +302,89 @@
                 const latestData = lines[lines.length - 2].trim();
                 receivedBuffer = lines[lines.length - 1];
 
-                if (latestData === "HIT") {
+                if (latestData === "HIT" && !isAttacking) {
                     wusongAttack();
                 }
             }
         }
 
         function wusongAttack() {
-            if (score >= 10) return;
+            if (score >= 10 || isAttacking) return;
+            isAttacking = true;
 
+            // 1. 播放音效
             hitSound.currentTime = 0;
-            hitSound.play().catch(e => console.log("音效播放被阻擋，請先與頁面互動"));
-
-            document.body.classList.add('hit-flash');
-
-            const wusongImg = document.getElementById('wusongImg');
-            if (wusongImg.style.display !== 'none') {
-                wusongImg.src = "ws2.png"; 
+            hitSound.play().catch(e => console.log("音效被阻擋"));
+            
+            // 隨機播放老虎吼叫聲增加震撼感
+            if(Math.random() > 0.5) {
+                roarSound.currentTime = 0;
+                roarSound.play().catch(e => console.log("音效被阻擋"));
             }
 
-            const tigerContainer = document.getElementById('tigerImg').parentElement;
-            tigerContainer.classList.add('tiger-shake');
+            // 2. 震撼背景閃爍
+            document.body.classList.add('hit-flash');
+
+            // 3. 爆擊特效圖層
+            const impactEffect = document.getElementById('impact-effect');
+            impactEffect.classList.add('show-impact');
+
+            // 4. 武松切換打擊圖案並加上前傾動畫
+            const wusongImg = document.getElementById('wusongImg');
+            const wusongContainer = document.getElementById('wusong-container');
             
+            if (wusongImg.style.display !== 'none') {
+                wusongImg.src = "ws2.png"; // 換成打擊圖 (棍子打下)
+            }
+            wusongContainer.classList.add('wusong-strike');
+
+            // 5. 老虎切換成被打的圖案，並加上劇烈震動動畫
+            const tigerImg = document.getElementById('tigerImg');
+            const tigerContainer = document.getElementById('tiger-container');
+            
+            if (tigerImg.style.display !== 'none') {
+                tigerImg.src = "wstiger2.png"; // 換成被打的老虎圖案
+            }
+            tigerContainer.classList.add('tiger-hit');
+            
+            // 延遲後復原狀態 (約 400 毫秒)
             setTimeout(() => {
                 document.body.classList.remove('hit-flash');
-                tigerContainer.classList.remove('tiger-shake');
+                impactEffect.classList.remove('show-impact');
+                wusongContainer.classList.remove('wusong-strike');
+                tigerContainer.classList.remove('tiger-hit');
+                
+                // 圖案復原
                 if (wusongImg.style.display !== 'none') {
-                    wusongImg.src = "ws1.png"; 
+                    wusongImg.src = "ws1.png"; // 武松恢復舉棍準備
                 }
-            }, 300);
+                if (tigerImg.style.display !== 'none') {
+                    tigerImg.src = "wstiger1.png"; // 老虎恢復原本樣子
+                }
+                
+                isAttacking = false; // 解除攻擊鎖定
+            }, 400);
 
+            // 計分與戰利品
             score++;
             document.getElementById('scoreText').innerText = score;
             addMiniTiger();
 
+            // 判斷是否過關
             if (score === 10) {
                 setTimeout(() => {
                     document.getElementById('gameOverModal').style.display = 'flex';
-                }, 600);
+                }, 800); // 稍微延遲讓最後一下的動畫播完
             }
         }
 
+        // 修改：使用 wstiger2.png 作為小老虎分數的圖案
         function addMiniTiger() {
             const container = document.getElementById('tigerContainer');
             const img = document.createElement('img');
-            img.src = 'wstiger.png';
+            img.src = 'wstiger2.png'; // 使用已被打到的老虎圖案當作分數
             img.className = 'mini-tiger';
-            img.alt = '小老虎';
+            img.alt = '收集到的小老虎';
             
             const fallbackSpan = document.createElement('span');
             fallbackSpan.className = 'mini-tiger-fallback';
@@ -261,6 +405,14 @@
             document.getElementById('scoreText').innerText = score;
             document.getElementById('tigerContainer').innerHTML = '';
             document.getElementById('gameOverModal').style.display = 'none';
+            isAttacking = false;
+            
+            // 確保圖案重置
+            const wusongImg = document.getElementById('wusongImg');
+            if (wusongImg.style.display !== 'none') wusongImg.src = "ws1.png";
+            
+            const tigerImg = document.getElementById('tigerImg');
+            if (tigerImg.style.display !== 'none') tigerImg.src = "wstiger1.png";
         }
     </script>
 </body>
