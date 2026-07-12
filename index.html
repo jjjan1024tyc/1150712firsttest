@@ -24,16 +24,16 @@
         #restartBtn { background-color: #607d8b; color: white; padding: 10px 20px; font-size: 18px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-left: 20px; }
         #restartBtn:hover { background-color: #455a64; }
 
-        /* 對戰主要容器：預設先隱藏，等點擊人數後才顯示 */
+        /* 对战主要容器：预设先隐藏，等点击人数后才显示 */
         #battlefield { display: none; justify-content: center; gap: 15px; flex: 1; padding: 0 10px; flex-wrap: wrap; }
 
-        /* 針對不同人數的寬度分配 */
+        /* 针对不同人数的宽度分配 */
         .players-1 .player-zone { max-width: 600px; }
         .players-2 .player-zone { max-width: 48%; }
         .players-3 .player-zone { max-width: 32%; }
         .players-4 .player-zone { max-width: 24%; min-width: 250px; }
 
-        /* 單一玩家的區域 */
+        /* 单一玩家的区域 */
         .player-zone { 
             flex: 1; 
             background-color: #ffcc80; 
@@ -49,14 +49,14 @@
 
         .player-title { font-size: 22px; font-weight: bold; color: #4e342e; margin-bottom: 5px; }
         
-        /* 連線按鈕區域 */
+        /* 连线按钮区域 */
         .connect-area { margin-bottom: 10px; }
         .btn-connect { background-color: #ff9800; padding: 6px 12px; font-size: 15px; font-weight: bold; color: white; border: none; border-radius: 8px; cursor: pointer; transition: background 0.3s; }
         .btn-connect:hover { background-color: #e65100; }
         .btn-connect:disabled { background-color: #bdbdbd; cursor: not-allowed; }
         .status-text { display: block; font-size: 13px; margin-top: 4px; color: #d32f2f; font-weight: bold; }
 
-        /* 遊戲小舞台 */
+        /* 游戏小舞台 */
         .stage { 
             width: 100%; 
             height: 220px; 
@@ -67,7 +67,7 @@
             overflow: visible; 
         }
 
-        /* 角色容器改為絕對定位，不再受 flex 影響而亂飄 */
+        /* 角色容器改为绝对定位 */
         .char-container { 
             position: absolute; 
             bottom: 5px; 
@@ -75,24 +75,24 @@
             flex-direction: column; 
         }
         
-        /* 武松：鎖死左側基準點，拉開距離避免文字重疊 */
+        /* 武松：向左移量加倍（由-150px改為-300px） */
         .wusong-wrap { 
             z-index: 2; 
             left: 50%;
-            margin-left: -150px; 
+            margin-left: -300px; 
             align-items: flex-start; 
         } 
         .wusong-wrap .char-name { margin-left: 35px; } 
 
-        /* 老虎：鎖死右側基準點，拉開距離避免文字重疊 */
+        /* 老虎：向右移量加倍（由-160px改為-320px） */
         .tiger-wrap { 
             z-index: 1; 
             right: 50%;
-            margin-right: -160px; 
+            margin-right: -320px; 
             align-items: center; 
         }
 
-        /* 圖片設定：固定 180px，切換圖片時由 CSS 自動維持相同高度，徹底解決變形問題 */
+        /* 图片设定：固定 180px */
         .char-img { 
             height: 180px; 
             width: auto;
@@ -100,13 +100,13 @@
             object-fit: contain; 
         }
 
-        /* 針對武松：變形基準點設定為左下角 */
+        /* 针对武松：变形基准点设定为左下角 */
         .wusong-wrap .char-img {
              transform-origin: bottom left; 
              object-position: bottom left;
         }
 
-        /* 針對老虎：預設縮小 50%，變形基準點設為底部中間 */
+        /* 针对老虎：默认缩小 50%，变形基准点设为底部中间 */
         .tiger-wrap .char-img {
             transform: scale(0.5); 
             transform-origin: bottom center; 
@@ -128,8 +128,9 @@
         }
         .mini-tiger { height: 35px; object-fit: contain; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 
+        /* 動畫套用 */
         .wusong-strike { animation: strikeForward 0.2s ease-out; }
-        .tiger-hit { animation: hitShake 0.3s cubic-bezier(.36,.07,.19,.97) both; filter: brightness(1.2) contrast(1.2); }
+        .tiger-hit { animation: hitShake 0.3s ease-out; } /* 修正震動動畫呼叫方式 */
         .show-impact { animation: powEffect 0.3s ease-out; }
         .hit-flash { animation: flashBg 0.2s ease-out; }
         
@@ -139,19 +140,21 @@
         }
 
         @keyframes flashBg { 0% { background-color: #ffcc80; } 30% { background-color: #ff5252; box-shadow: inset 0 0 50px #ffeb3b; } 100% { background-color: #ffcc80; } }
-        /* 武松打擊動畫：距離拉開了，增加跨步位移(40px)讓棍子打到老虎 (完全不使用 scale 以避免身型變化) */
+        
+        /* 武松打击动画：因應距離拉長，向前平移加大到 80px */
         @keyframes strikeForward { 
             0% { transform: translateX(0); } 
-            50% { transform: translateX(40px); } 
+            50% { transform: translateX(80px); } 
             100% { transform: translateX(0); } 
         }
         
-        /* 老虎震動動畫：必須保留 scale(0.5) 維持原本的縮放比例，並且加上位移震動 */
+        /* 老虎震动动画：獨立計算位移，不再與外層 scale 互相干擾，百分百消除縮小問題 */
         @keyframes hitShake { 
-            0%, 100% { transform: scale(0.5) translate(0, 0); } 
-            20%, 60% { transform: scale(0.5) translate(-16px, 16px) rotate(-3deg); } 
-            40%, 80% { transform: scale(0.5) translate(16px, -16px) rotate(3deg); } 
+            0%, 100% { transform: translate(0, 0); } 
+            20%, 60% { transform: translate(-15px, 0) rotate(-3deg); } 
+            40%, 80% { transform: translate(15px, 0) rotate(3deg); } 
         }
+        
         @keyframes powEffect { 0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); } 50% { opacity: 1; transform: translate(-50%, -50%) scale(1.5) rotate(15deg); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(2); } }
         @keyframes popIn { 0% { transform: scale(0) rotate(-180deg); } 80% { transform: scale(1.2) rotate(10deg); } 100% { transform: scale(1) rotate(0deg); } }
         
@@ -167,7 +170,7 @@
 <body>
 
     <div class="header-container">
-        <img src="ws2.png" class="header-icon" alt="武松打擊">
+        <img src="ws2.png" class="header-icon" alt="武松打击">
         <h1>武松打虎</h1>
         <img src="wstiger1.png" class="header-icon" alt="老虎">
     </div>
@@ -286,7 +289,7 @@
         const maxScore = 10;
         let gameEnded = false;
         let audioUnlocked = false;
-        let currentPlayers = 0; // 預設改為 0 人 (未點選狀態)
+        let currentPlayers = 0; 
 
         const players = {
             1: { score: 0, device: null, server: null, buffer: "", isAttacking: false },
@@ -295,12 +298,10 @@
             4: { score: 0, device: null, server: null, buffer: "", isAttacking: false }
         };
 
-        // 網頁載入時：顯示產出時間，不預設顯示任何人
         window.onload = () => {
             updateGeneratedTime();
         };
 
-        // 產生並顯示目前的年月日時分秒
         function updateGeneratedTime() {
             const now = new Date();
             const year = now.getFullYear();
@@ -313,13 +314,10 @@
             document.getElementById('timeDisplay').innerText = `程式產出時間：${year}-${month}-${date} ${hours}:${minutes}:${seconds}`;
         }
 
-        // 設定遊玩人數與解鎖音效
         function setPlayerCount(num, doUnlock = true) {
             currentPlayers = num;
-            
             if(doUnlock) unlockAudio();
 
-            // 顯示戰場容器
             const battlefield = document.getElementById('battlefield');
             battlefield.style.display = 'flex';
             battlefield.className = `players-${num}`;
@@ -339,14 +337,11 @@
                     zone.style.display = 'none';
                 }
             }
-            
             resetAll(); 
         }
 
-        // 解鎖音效機制
         function unlockAudio() {
             if(audioUnlocked) return;
-            
             for(let i=1; i<=4; i++) {
                 const snd = document.getElementById(`snd-hit-${i}`);
                 snd.volume = 0;
@@ -355,23 +350,18 @@
             const cheer = document.getElementById('snd-cheer');
             cheer.volume = 0;
             cheer.play().then(() => { cheer.pause(); cheer.currentTime = 0; cheer.volume = 1.0; }).catch(e => {});
-            
             audioUnlocked = true;
         }
 
-        // 連線處理
         async function connectDevice(playerId) {
             const btn = document.getElementById(`btn-conn-${playerId}`);
             const status = document.getElementById(`status-${playerId}`);
-            
             try {
                 status.innerText = "搜尋裝置中..."; status.style.color = "#ff9800";
-                
                 const device = await navigator.bluetooth.requestDevice({
                     filters: [{ namePrefix: 'BBC micro:bit' }],
                     optionalServices: [UART_SERVICE_UUID]
                 });
-
                 players[playerId].device = device;
                 device.addEventListener('gattserverdisconnected', () => handleDisconnect(playerId));
 
@@ -389,7 +379,6 @@
                 btn.disabled = true;
                 status.innerText = "連線穩定";
                 status.style.color = "green";
-
             } catch (error) {
                 console.error(`玩家 ${playerId} 連線失敗`, error);
                 status.innerText = "連線失敗";
@@ -444,7 +433,6 @@
             zone.classList.add('hit-flash');
             document.getElementById(`impact-${playerId}`).classList.add('show-impact');
 
-            // 替換圖案
             const wsImg = document.getElementById(`ws-img-${playerId}`);
             const wsWrap = document.getElementById(`wusong-wrap-${playerId}`);
             wsImg.src = "ws2.png";
@@ -456,7 +444,6 @@
             tgWrap.classList.add('tiger-hit');
 
             setTimeout(() => {
-                // 復原
                 if(!gameEnded) {
                     wsImg.src = "ws1.png";
                 }
@@ -464,7 +451,6 @@
                 document.getElementById(`impact-${playerId}`).classList.remove('show-impact');
                 wsWrap.classList.remove('wusong-strike');
                 tgWrap.classList.remove('tiger-hit');
-                
                 tgImg.src = "wstiger1.png";
                 p.isAttacking = false;
             }, 350);
@@ -484,7 +470,6 @@
 
         function declareWinner(playerId) {
             gameEnded = true;
-            
             if(audioUnlocked) {
                 const cheer = document.getElementById('snd-cheer');
                 cheer.currentTime = 0;
@@ -493,7 +478,6 @@
 
             const wsWrap = document.getElementById(`wusong-wrap-${playerId}`);
             wsWrap.classList.add('win-spin');
-            
             document.getElementById(`tiger-wrap-${playerId}`).style.display = 'none';
 
             var duration = 3000;
@@ -506,10 +490,7 @@
 
             var interval = setInterval(function() {
               var timeLeft = animationEnd - Date.now();
-
-              if (timeLeft <= 0) {
-                return clearInterval(interval);
-              }
+              if (timeLeft <= 0) return clearInterval(interval);
 
               var particleCount = 50 * (timeLeft / duration);
               confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
@@ -519,8 +500,6 @@
 
         function resetAll() {
             gameEnded = false;
-            
-            // 如果尚未點選人數，不需要處理重設
             if (currentPlayers === 0) return;
 
             for(let i=1; i<=4; i++) {
