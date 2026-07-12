@@ -49,43 +49,43 @@
         }
 
         .player-title { font-size: 22px; font-weight: bold; color: #4e342e; margin-bottom: 5px; }
-        
-        /* 連線按鈕區域 */
-        .connect-area { margin-bottom: 10px; }
-        .btn { padding: 6px 12px; font-size: 15px; font-weight: bold; color: white; border: none; border-radius: 8px; cursor: pointer; transition: background 0.3s; }
-        .btn-connect { background-color: #ff9800; }
-        .btn-connect:hover { background-color: #e65100; }
-        .btn-connect:disabled { background-color: #bdbdbd; cursor: not-allowed; }
-        .status-text { display: block; font-size: 13px; margin-top: 4px; color: #d32f2f; font-weight: bold; }
-
-        /* 遊戲小舞台 */
+        /* 遊戲小舞台 - 調整高度以減少上方留白 */
         .stage { 
             width: 100%; 
-            height: 300px; 
+            height: 220px; /* 從 300px 縮減到 220px，減少上方空間 */
             position: relative; 
             display: flex; 
-            align-items: flex-end; 
+            align-items: flex-end; /* 讓圖片緊貼舞台底部 */
             justify-content: center;
             background-color: rgba(255,255,255,0.2);
             border-radius: 10px;
             margin-bottom: 10px;
-            /* 將 overflow 改為 visible，這樣放大旋轉的武松才不會被切斷 */
             overflow: visible; 
         }
 
         .char-container { position: relative; display: flex; flex-direction: column; align-items: center; }
         
         /* 武松與老虎位置 */
-        .wusong-wrap { z-index: 2; margin-right: -15%; }
-        .tiger-wrap { z-index: 1; margin-left: -15%; }
+        .wusong-wrap { z-index: 2; margin-right: -10%; } /* 稍微調整重疊比例 */
+        .tiger-wrap { z-index: 1; margin-left: -10%; }
 
-        /* 圖片設定 */
+        /* 圖片設定 - 取消原有的 transition，改在特定角色上設定 */
         .char-img { 
-            max-height: 280px; 
+            max-height: 200px; /* 配合舞台高度縮小圖片最大高度 */
             max-width: 120%;
             object-fit: contain; 
-            transition: transform 0.1s; 
             transform-origin: bottom center;
+        }
+
+        /* 針對武松的動畫設定 */
+        #wusong-wrap-1 .char-img, #wusong-wrap-2 .char-img, #wusong-wrap-3 .char-img, #wusong-wrap-4 .char-img {
+             transition: transform 0.1s;
+        }
+
+        /* 針對老虎：預設縮小 50% */
+        .tiger-wrap .char-img {
+            transform: scale(0.5); /* 強制縮小為 50% */
+            transform-origin: bottom right; /* 從右下角縮放，讓牠看起來在武松旁邊而不是浮在空中 */
         }
 
         .impact-effect {
@@ -96,11 +96,26 @@
 
         /* 分數與戰利品區 */
         .score-board { font-size: 18px; font-weight: bold; color: #5d4037; margin: 5px 0; }
-        .trophy-case { 
-            width: 100%; min-height: 60px; background-color: #fff; border: 2px dashed #ffb74d; 
-            border-radius: 10px; padding: 5px; display: flex; flex-wrap: wrap; gap: 3px; 
-            justify-content: center; align-items: center; align-content: flex-start;
-            box-sizing: border-box;
+        /* 動畫特效 - 老虎被打擊時，要保留 0.5 的縮放比例 */
+        .wusong-strike { animation: strikeForward 0.2s ease-out; }
+        .tiger-hit { animation: hitShake 0.3s cubic-bezier(.36,.07,.19,.97) both; filter: brightness(1.2) contrast(1.2); }
+        .show-impact { animation: powEffect 0.3s ease-out; }
+        .hit-flash { animation: flashBg 0.2s ease-out; }
+        
+        /* 勝利時的武松旋轉放大特效 */
+        .win-spin {
+            animation: spinWin 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards !important;
+            z-index: 100 !important;
+        }
+
+        @keyframes flashBg { 0% { background-color: #ffcc80; } 30% { background-color: #ff5252; box-shadow: inset 0 0 50px #ffeb3b; } 100% { background-color: #ffcc80; } }
+        @keyframes strikeForward { 0% { transform: scale(1) translateX(0); } 50% { transform: scale(1.1) translateX(15px); } 100% { transform: scale(1) translateX(0); } }
+        
+        /* 修改老虎震動動畫，加入 scale(0.5) 讓牠在震動時不會突然變大 */
+        @keyframes hitShake { 
+            0%, 100% { transform: scale(0.5) translate(0, 0); } 
+            20%, 60% { transform: scale(0.5) translate(-8px, 8px) rotate(-3deg); } 
+            40%, 80% { transform: scale(0.5) translate(8px, -8px) rotate(3deg); } 
         }
         .mini-tiger { height: 35px; object-fit: contain; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 
@@ -149,12 +164,12 @@
         <button id="restartBtn" onclick="resetAll()">🔄 重新開始比賽</button>
     </div>
 
-    <!-- 隱藏的音效庫 -->
+    <!-- 隱藏的音效庫：更換為更具震撼力的重擊聲 -->
     <div style="display:none;">
-        <audio id="snd-hit-1" src="https://assets.mixkit.co/active_storage/sfx/2043/2043-preview.mp3" preload="auto"></audio>
-        <audio id="snd-hit-2" src="https://assets.mixkit.co/active_storage/sfx/2043/2043-preview.mp3" preload="auto"></audio>
-        <audio id="snd-hit-3" src="https://assets.mixkit.co/active_storage/sfx/2043/2043-preview.mp3" preload="auto"></audio>
-        <audio id="snd-hit-4" src="https://assets.mixkit.co/active_storage/sfx/2043/2043-preview.mp3" preload="auto"></audio>
+        <audio id="snd-hit-1" src="https://assets.mixkit.co/active_storage/sfx/2052/2052-preview.mp3" preload="auto"></audio>
+        <audio id="snd-hit-2" src="https://assets.mixkit.co/active_storage/sfx/2052/2052-preview.mp3" preload="auto"></audio>
+        <audio id="snd-hit-3" src="https://assets.mixkit.co/active_storage/sfx/2052/2052-preview.mp3" preload="auto"></audio>
+        <audio id="snd-hit-4" src="https://assets.mixkit.co/active_storage/sfx/2052/2052-preview.mp3" preload="auto"></audio>
         <!-- 歡呼聲音效 -->
         <audio id="snd-cheer" src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3" preload="auto"></audio>
     </div>
