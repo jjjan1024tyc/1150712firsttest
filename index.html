@@ -4,15 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>武松打虎</title>
-    <!-- 引入紙花特效函式庫 -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         body { font-family: 'Microsoft JhengHei', sans-serif; text-align: center; background-color: #fff3e0; margin: 0; padding: 10px; display: flex; flex-direction: column; min-height: 98vh; overflow-x: hidden; }
         
-        /* 標題區域設計：放大一倍 */
+        /* 標題區域設計：放大一倍，左邊使用 ws2.png */
         .header-container { display: flex; justify-content: center; align-items: center; gap: 20px; margin: 10px 0 20px 0; }
-        h1 { color: #d84315; margin: 0; font-size: 80px; } /* 從 40px 放大為 80px */
-        .header-icon { height: 80px; object-fit: contain; } /* 高度跟隨文字放大 */
+        h1 { color: #d84315; margin: 0; font-size: 80px; }
+        .header-icon { height: 80px; object-fit: contain; }
 
         /* 頂部控制區與人數選擇 */
         #topControls { background-color: #ffe0b2; padding: 10px 20px; border-radius: 10px; margin-bottom: 15px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
@@ -50,15 +49,22 @@
 
         .player-title { font-size: 22px; font-weight: bold; color: #4e342e; margin-bottom: 5px; }
         
+        /* 連線按鈕區域 */
+        .connect-area { margin-bottom: 10px; }
+        .btn-connect { background-color: #ff9800; padding: 6px 12px; font-size: 15px; font-weight: bold; color: white; border: none; border-radius: 8px; cursor: pointer; transition: background 0.3s; }
+        .btn-connect:hover { background-color: #e65100; }
+        .btn-connect:disabled { background-color: #bdbdbd; cursor: not-allowed; }
+        .status-text { display: block; font-size: 13px; margin-top: 4px; color: #d32f2f; font-weight: bold; }
+
         /* 遊戲小舞台 */
         .stage { 
             width: 100%; 
             height: 220px; 
-            position: relative; /* 內部元素使用絕對定位，保持舞台獨立 */
+            position: relative; 
             background-color: rgba(255,255,255,0.2);
             border-radius: 10px;
             margin-bottom: 10px;
-            overflow: visible; 
+            overflow: visible; /* 允許武松放大旋轉時超出邊界 */
         }
 
         /* 角色容器改為絕對定位，不再受 flex 影響而亂飄 */
@@ -69,33 +75,32 @@
             flex-direction: column; 
         }
         
-        /* 武松：鎖死左側基準點，讓棍子只朝右邊延伸 */
+        /* 武松：鎖死左側基準點，拉開距離避免文字重疊 */
         .wusong-wrap { 
             z-index: 2; 
             left: 50%;
-            margin-left: -110px; /* 固定在畫面中心的左側 */
+            margin-left: -150px; 
             align-items: flex-start; /* 圖片靠左對齊 */
         } 
-        /* 讓武松的文字置中在身體下方 */
-        .wusong-wrap .char-name { margin-left: 25px; }
+        .wusong-wrap .char-name { margin-left: 35px; } /* 微調文字置中於身體下方 */
 
-        /* 老虎：鎖死右側基準點 */
+        /* 老虎：鎖死右側基準點，拉開距離避免文字重疊 */
         .tiger-wrap { 
             z-index: 1; 
             right: 50%;
-            margin-right: -130px; /* 固定在畫面中心的右側 */
+            margin-right: -160px; 
             align-items: center; 
         }
 
-        /* 圖片設定：取消 max-width，讓圖片能自由展現真實寬度 */
+        /* 圖片設定：取消 max-width，讓圖片能自由展現真實寬度，高度適應4人模式 */
         .char-img { 
-            max-height: 200px; 
+            max-height: 180px; 
             max-width: none;
             object-fit: contain; 
         }
 
         /* 針對武松：變形基準點設定為左下角 */
-        #wusong-wrap-1 .char-img, #wusong-wrap-2 .char-img, #wusong-wrap-3 .char-img, #wusong-wrap-4 .char-img {
+        .wusong-wrap .char-img {
              transition: transform 0.1s;
              transform-origin: bottom left; 
              object-position: bottom left;
@@ -123,7 +128,6 @@
         }
         .mini-tiger { height: 35px; object-fit: contain; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 
-        /* 動畫特效 */
         .wusong-strike { animation: strikeForward 0.2s ease-out; }
         .tiger-hit { animation: hitShake 0.3s cubic-bezier(.36,.07,.19,.97) both; filter: brightness(1.2) contrast(1.2); }
         .show-impact { animation: powEffect 0.3s ease-out; }
@@ -135,14 +139,14 @@
         }
 
         @keyframes flashBg { 0% { background-color: #ffcc80; } 30% { background-color: #ff5252; box-shadow: inset 0 0 50px #ffeb3b; } 100% { background-color: #ffcc80; } }
-        /* 武松打擊動畫，因為錨點已經鎖左，translateX 會順勢把身體微微往前帶 */
+        /* 武松打擊動畫：距離拉開了，增加跨步位移(40px)讓棍子打到老虎 */
         @keyframes strikeForward { 
             0% { transform: scale(1) translateX(0); } 
-            50% { transform: scale(1.05) translateX(25px); } 
+            50% { transform: scale(1.05) translateX(40px); } 
             100% { transform: scale(1) translateX(0); } 
         }
         
-        /* 老虎震動動畫：注意要保留 scale(0.5) */
+        /* 老虎震動動畫：必須保留 scale(0.5) 避免瞬間變大 */
         @keyframes hitShake { 
             0%, 100% { transform: scale(0.5) translate(0, 0); } 
             20%, 60% { transform: scale(0.5) translate(-16px, 16px) rotate(-3deg); } 
@@ -161,7 +165,7 @@
 </head>
 <body>
 
-    <!-- 標題區域 (圖片更換為 ws2.png 並與文字一起放大) -->
+    <!-- 標題區域 (左邊換成 ws2.png 並與文字一起放大為 80px) -->
     <div class="header-container">
         <img src="ws2.png" class="header-icon" alt="武松打擊">
         <h1>武松打虎</h1>
@@ -178,7 +182,7 @@
         <button id="restartBtn" onclick="resetAll()">🔄 重新開始比賽</button>
     </div>
 
-    <!-- 隱藏的音效庫：重擊聲 -->
+    <!-- 隱藏的音效庫：使用震撼的打擊聲 -->
     <div style="display:none;">
         <audio id="snd-hit-1" src="https://assets.mixkit.co/active_storage/sfx/2052/2052-preview.mp3" preload="auto"></audio>
         <audio id="snd-hit-2" src="https://assets.mixkit.co/active_storage/sfx/2052/2052-preview.mp3" preload="auto"></audio>
@@ -193,7 +197,7 @@
         <div class="player-zone" id="zone-1">
             <div class="player-title">🟢 玩家 1</div>
             <div class="connect-area">
-                <button class="btn btn-connect" id="btn-conn-1" onclick="connectDevice(1)">連線 1 號棒</button>
+                <button class="btn-connect" id="btn-conn-1" onclick="connectDevice(1)">連線 1 號棒</button>
                 <span class="status-text" id="status-1">未連線</span>
             </div>
             <div class="stage" id="stage-1" onclick="simulateAttack(1)">
@@ -215,7 +219,7 @@
         <div class="player-zone" id="zone-2">
             <div class="player-title">🟡 玩家 2</div>
             <div class="connect-area">
-                <button class="btn btn-connect" id="btn-conn-2" onclick="connectDevice(2)">連線 2 號棒</button>
+                <button class="btn-connect" id="btn-conn-2" onclick="connectDevice(2)">連線 2 號棒</button>
                 <span class="status-text" id="status-2">未連線</span>
             </div>
             <div class="stage" id="stage-2" onclick="simulateAttack(2)">
@@ -237,7 +241,7 @@
         <div class="player-zone" id="zone-3">
             <div class="player-title">🔴 玩家 3</div>
             <div class="connect-area">
-                <button class="btn btn-connect" id="btn-conn-3" onclick="connectDevice(3)">連線 3 號棒</button>
+                <button class="btn-connect" id="btn-conn-3" onclick="connectDevice(3)">連線 3 號棒</button>
                 <span class="status-text" id="status-3">未連線</span>
             </div>
             <div class="stage" id="stage-3" onclick="simulateAttack(3)">
@@ -259,7 +263,7 @@
         <div class="player-zone" id="zone-4">
             <div class="player-title">🔵 玩家 4</div>
             <div class="connect-area">
-                <button class="btn btn-connect" id="btn-conn-4" onclick="connectDevice(4)">連線 4 號棒</button>
+                <button class="btn-connect" id="btn-conn-4" onclick="connectDevice(4)">連線 4 號棒</button>
                 <span class="status-text" id="status-4">未連線</span>
             </div>
             <div class="stage" id="stage-4" onclick="simulateAttack(4)">
