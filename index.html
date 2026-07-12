@@ -77,22 +77,22 @@
             transition: height 0.15s ease-out;
         }
         
-        /* 武松基礎高度：平時佔舞台 75% */
+        /* ✨ 核心變更 4：武松未打時圖片高度改為 85% */
         .wusong-wrap { 
-            height: 75%;
+            height: 85%;
             z-index: 2; 
             left: 25%; 
             transform: translateX(-50%);
         } 
 
-        /* 武松打下時，尺寸縮小為舞台高度的 60% */
+        /* ✨ 核心變更 4：武松打下時高度改為 70% */
         .wusong-wrap.wusong-strike {
-            height: 60%;
+            height: 70%;
         }
 
-        /* 老虎基礎高度：設定為 37.5% */
+        /* ✨ 核心變更 4：老虎尺寸放大 20% (37.5% * 1.2 = 45%) */
         .tiger-wrap { 
-            height: 37.5%; 
+            height: 45%; 
             z-index: 1; 
             right: 25%; 
             transform: translateX(50%);
@@ -118,19 +118,25 @@
             white-space: nowrap;
         }
 
-        /* ✨ 核心變更 2：將爆炸圖設定在 right: 35%、自舞台底部向上 35% 處（vw 單位確保人數縮放時尺寸等比例完美適應） */
+        /* ✨ 核心變更 1：爆炸圖設定在 right: 35% 以及底部向上 30% 處 */
         .impact-effect {
              position: absolute; 
-             bottom: 35%; 
+             bottom: 30%; 
              right: 35%; 
              transform: translate(50%, 0) scale(0.5);
-             font-size: 5vw; 
+             font-size: 6vw; /* 基準尺寸（1人模式下） */
              color: red; 
              text-shadow: 2px 2px 0 yellow, -2px -2px 0 yellow;
              opacity: 0; 
              z-index: 10; 
              pointer-events: none;
         }
+
+        /* ✨ 核心變更 2：在 2、3、4 人模式下，爆炸圖尺寸等比例縮小 */
+        .players-1 .impact-effect { font-size: 6vw; }
+        .players-2 .impact-effect { font-size: 3.8vw; }
+        .players-3 .impact-effect { font-size: 2.6vw; }
+        .players-4 .impact-effect { font-size: 2.0vw; }
 
         .score-board { font-size: 18px; font-weight: bold; color: #5d4037; margin: 5px 0; }
         .trophy-case { 
@@ -171,8 +177,8 @@
         /* 爆炸圖特效：配合新位置向上微彈爆開 */
         @keyframes powEffect { 
             0% { opacity: 0; transform: translate(50%, 15px) scale(0.5); } 
-            50% { opacity: 1; transform: translate(50%, -15px) scale(1.5) rotate(15deg); } 
-            100% { opacity: 0; transform: translate(50%, -30px) scale(2); } 
+            50% { opacity: 1; transform: translate(50%, -15px) scale(1.4) rotate(15deg); } 
+            100% { opacity: 0; transform: translate(50%, -30px) scale(1.8); } 
         }
         @keyframes popIn { 0% { transform: scale(0) rotate(-180deg); } 80% { transform: scale(1.2) rotate(10deg); } 100% { transform: scale(1) rotate(0deg); } }
         
@@ -181,7 +187,6 @@
             100% { transform: translateX(-50%) scale(1.5) rotate(360deg); filter: drop-shadow(0 0 15px #fff); } 
         }
 
-        /* ✨ 核心變更 1：時間格式與頁面底部排版樣式 */
         footer { margin-top: 20px; padding: 5px; font-size: 12px; color: #795548; border-top: 1px solid #ffe0b2;}
         .time-info { margin-top: 5px; font-size: 12px; color: #795548; font-weight: normal; }
     </style>
@@ -195,7 +200,7 @@
     </div>
     
     <div id="topControls">
-        <span class="control-label">選擇遊玩人數：</span>
+        <span class="control-label">選擇遊戲人數：</span>
         <button class="mode-btn" id="mode-1" onclick="setPlayerCount(1)">1人</button>
         <button class="mode-btn" id="mode-2" onclick="setPlayerCount(2)">2人</button>
         <button class="mode-btn" id="mode-3" onclick="setPlayerCount(3)">3人</button>
@@ -461,13 +466,10 @@
             tgImg.src = "wstiger2.png";
             tgWrap.classList.add('tiger-hit');
 
-            // 增加一個旗標判斷此打擊是否為致勝擊
             const isWinningHit = (p.score + 1 >= maxScore);
 
             setTimeout(() => {
-                // ✨ 核心變更 3：如果不是致勝擊，或就算是致勝擊也先讓圖片回復基本狀態
                 wsImg.src = "ws1.png";
-                
                 zone.classList.remove('hit-flash');
                 document.getElementById(`impact-${playerId}`).classList.remove('show-impact');
                 wsWrap.classList.remove('wusong-strike');
@@ -475,7 +477,6 @@
                 tgImg.src = "wstiger1.png";
                 p.isAttacking = false;
 
-                // ✨ 核心變更 3：精準在 350 毫秒打擊動畫與爆炸結束後，再啟動勝利大改版旋轉動作
                 if (isWinningHit && !gameEnded) {
                     declareWinner(playerId);
                 }
