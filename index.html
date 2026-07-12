@@ -64,13 +64,13 @@
             background-color: rgba(255,255,255,0.2);
             border-radius: 10px;
             margin-bottom: 10px;
-            overflow: visible; /* 允許武松放大旋轉時超出邊界 */
+            overflow: visible; 
         }
 
         /* 角色容器改為絕對定位，不再受 flex 影響而亂飄 */
         .char-container { 
             position: absolute; 
-            bottom: 5px; /* 統一貼齊底部 */
+            bottom: 5px; 
             display: flex; 
             flex-direction: column; 
         }
@@ -80,9 +80,9 @@
             z-index: 2; 
             left: 50%;
             margin-left: -150px; 
-            align-items: flex-start; /* 圖片靠左對齊 */
+            align-items: flex-start; 
         } 
-        .wusong-wrap .char-name { margin-left: 35px; } /* 微調文字置中於身體下方 */
+        .wusong-wrap .char-name { margin-left: 35px; } 
 
         /* 老虎：鎖死右側基準點，拉開距離避免文字重疊 */
         .tiger-wrap { 
@@ -92,16 +92,16 @@
             align-items: center; 
         }
 
-        /* 圖片設定：取消 max-width，讓圖片能自由展現真實寬度，高度適應4人模式 */
+        /* 圖片設定：取消 max-height 的強制約束，改為固定 180px，動態縮放交給 JS */
         .char-img { 
-            max-height: 180px; 
+            height: 180px; 
             max-width: none;
             object-fit: contain; 
         }
 
         /* 針對武松：變形基準點設定為左下角 */
         .wusong-wrap .char-img {
-             transition: transform 0.1s;
+             transition: transform 0.1s; /* 移除 height 的 transition 以確保切換圖片時瞬間改變大小 */
              transform-origin: bottom left; 
              object-position: bottom left;
         }
@@ -141,9 +141,9 @@
         @keyframes flashBg { 0% { background-color: #ffcc80; } 30% { background-color: #ff5252; box-shadow: inset 0 0 50px #ffeb3b; } 100% { background-color: #ffcc80; } }
         /* 武松打擊動畫：距離拉開了，增加跨步位移(40px)讓棍子打到老虎 */
         @keyframes strikeForward { 
-            0% { transform: scale(1) translateX(0); } 
-            50% { transform: scale(1.05) translateX(40px); } 
-            100% { transform: scale(1) translateX(0); } 
+            0% { transform: translateX(0); } 
+            50% { transform: translateX(40px); } 
+            100% { transform: translateX(0); } 
         }
         
         /* 老虎震動動畫：必須保留 scale(0.5) 避免瞬間變大 */
@@ -188,7 +188,6 @@
         <audio id="snd-hit-2" src="https://assets.mixkit.co/active_storage/sfx/2052/2052-preview.mp3" preload="auto"></audio>
         <audio id="snd-hit-3" src="https://assets.mixkit.co/active_storage/sfx/2052/2052-preview.mp3" preload="auto"></audio>
         <audio id="snd-hit-4" src="https://assets.mixkit.co/active_storage/sfx/2052/2052-preview.mp3" preload="auto"></audio>
-        <!-- 歡呼聲音效 -->
         <audio id="snd-cheer" src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3" preload="auto"></audio>
     </div>
 
@@ -293,6 +292,12 @@
         let audioUnlocked = false;
         let currentPlayers = 3; // 預設3人
 
+        // 動態計算替換圖片的等比真實高度
+        let ws1Height = 180;
+        let ws2Height = 180;
+        let tg1Height = 180;
+        let tg2Height = 180;
+
         const players = {
             1: { score: 0, device: null, server: null, buffer: "", isAttacking: false },
             2: { score: 0, device: null, server: null, buffer: "", isAttacking: false },
@@ -300,8 +305,27 @@
             4: { score: 0, device: null, server: null, buffer: "", isAttacking: false }
         };
 
-        // 網頁載入時初始化顯示3人模式
-        window.onload = () => {
+        // 網頁載入時：預載入圖檔、計算完美比例並設定初始人數
+        window.onload = async () => {
+            // 預載圖片以取得原始尺寸 (Natural Height)
+            const p1 = new Promise(r => { const img = new Image(); img.onload = () => r(img); img.onerror = () => r(img); img.src = 'ws1.png'; });
+            const p2 = new Promise(r => { const img = new Image(); img.onload = () => r(img); img.onerror = () => r(img); img.src = 'ws2.png'; });
+            const p3 = new Promise(r => { const img = new Image(); img.onload = () => r(img); img.onerror = () => r(img); img.src = 'wstiger1.png'; });
+            const p4 = new Promise(r => { const img = new Image(); img.onload = () => r(img); img.onerror = () => r(img); img.src = 'wstiger2.png'; });
+
+            const [iWs1, iWs2, iTg1, iTg2] = await Promise.all([p1, p2, p3, p4]);
+
+            // 精確計算比例：以 180px 為基準，依照圖片的原始高度按比例算出第二張圖應有的像素高度
+            if (iWs1.naturalHeight) {
+                const wsScale = 180 / iWs1.naturalHeight;
+                ws2Height = Math.round(iWs2.naturalHeight * wsScale);
+            }
+            if (iTg1.naturalHeight) {
+                const tgScale = 180 / iTg1.naturalHeight;
+                tg2Height = Math.round(iTg2.naturalHeight * tgScale);
+            }
+
+            // 初始化設定
             setPlayerCount(3, false); 
         };
 
@@ -311,7 +335,6 @@
             
             if(doUnlock) unlockAudio();
 
-            // 更新按鈕外觀
             for(let i=1; i<=4; i++) {
                 const btn = document.getElementById(`mode-${i}`);
                 if(i === num) {
@@ -320,7 +343,6 @@
                     btn.classList.remove('active');
                 }
                 
-                // 顯示或隱藏對應的玩家區域
                 const zone = document.getElementById(`zone-${i}`);
                 if(i <= num) {
                     zone.style.display = 'flex';
@@ -329,18 +351,16 @@
                 }
             }
 
-            // 更新外層容器的 Class 以控制版面寬度
             const battlefield = document.getElementById('battlefield');
             battlefield.className = `players-${num}`;
             
-            resetAll(); // 切換人數時自動重置遊戲
+            resetAll(); 
         }
 
         // 解鎖音效機制
         function unlockAudio() {
             if(audioUnlocked) return;
             
-            // 將所有音效快速靜音播放一次來取得權限
             for(let i=1; i<=4; i++) {
                 const snd = document.getElementById(`snd-hit-${i}`);
                 snd.volume = 0;
@@ -419,7 +439,6 @@
             }
         }
 
-        // 點擊畫面測試用
         function simulateAttack(playerId) {
             if(!gameEnded && playerId <= currentPlayers) executeAttack(playerId);
         }
@@ -429,43 +448,45 @@
             if (p.isAttacking || gameEnded) return;
             p.isAttacking = true;
 
-            // 1. 播放音效
             if(audioUnlocked) {
                 const snd = document.getElementById(`snd-hit-${playerId}`);
                 snd.currentTime = 0;
                 snd.play().catch(e => console.log(e));
             }
 
-            // 2. 畫面特效與動畫
             const zone = document.getElementById(`zone-${playerId}`);
             zone.classList.add('hit-flash');
             document.getElementById(`impact-${playerId}`).classList.add('show-impact');
 
+            // 替換圖案並動態設定計算好的高度 (維持完美比例)
             const wsImg = document.getElementById(`ws-img-${playerId}`);
             const wsWrap = document.getElementById(`wusong-wrap-${playerId}`);
             wsImg.src = "ws2.png";
+            wsImg.style.height = ws2Height + "px"; 
             wsWrap.classList.add('wusong-strike');
 
             const tgImg = document.getElementById(`tg-img-${playerId}`);
             const tgWrap = document.getElementById(`tiger-wrap-${playerId}`);
             tgImg.src = "wstiger2.png";
+            tgImg.style.height = tg2Height + "px"; 
             tgWrap.classList.add('tiger-hit');
 
-            // 3. 復原動畫
             setTimeout(() => {
-                // 如果遊戲結束了，就不要把武松切回原本的圖案，讓他保持打擊完的帥氣姿勢放大旋轉
+                // 復原為預設高度 180px
                 if(!gameEnded) {
                     wsImg.src = "ws1.png";
+                    wsImg.style.height = ws1Height + "px"; 
                 }
                 zone.classList.remove('hit-flash');
                 document.getElementById(`impact-${playerId}`).classList.remove('show-impact');
                 wsWrap.classList.remove('wusong-strike');
                 tgWrap.classList.remove('tiger-hit');
+                
                 tgImg.src = "wstiger1.png";
+                tgImg.style.height = tg1Height + "px"; 
                 p.isAttacking = false;
             }, 350);
 
-            // 4. 計分
             p.score++;
             document.getElementById(`score-${playerId}`).innerText = p.score;
             
@@ -474,31 +495,25 @@
             trophy.className = 'mini-tiger';
             document.getElementById(`trophy-${playerId}`).appendChild(trophy);
 
-            // 5. 判斷勝利
             if (p.score >= maxScore) {
                 declareWinner(playerId);
             }
         }
 
-        // 原地勝利動畫 (不再切換畫面)
         function declareWinner(playerId) {
             gameEnded = true;
             
-            // 播放歡呼聲
             if(audioUnlocked) {
                 const cheer = document.getElementById('snd-cheer');
                 cheer.currentTime = 0;
                 cheer.play().catch(e => console.log(e));
             }
 
-            // 將獲勝的武松加上放大旋轉的動畫 CSS
             const wsWrap = document.getElementById(`wusong-wrap-${playerId}`);
             wsWrap.classList.add('win-spin');
             
-            // 隱藏該區的老虎，讓武松獨自發光發熱
             document.getElementById(`tiger-wrap-${playerId}`).style.display = 'none';
 
-            // 施放紙花瀑布特效 (canvas-confetti)
             var duration = 3000;
             var animationEnd = Date.now() + duration;
             var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
@@ -515,7 +530,6 @@
               }
 
               var particleCount = 50 * (timeLeft / duration);
-              // 發射點設在畫面的偏上方
               confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
               confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
             }, 250);
@@ -531,11 +545,14 @@
                 document.getElementById(`score-${i}`).innerText = '0';
                 document.getElementById(`trophy-${i}`).innerHTML = '';
                 
-                // 重置圖片
-                document.getElementById(`ws-img-${i}`).src = "ws1.png";
-                document.getElementById(`tg-img-${i}`).src = "wstiger1.png";
+                const wsImg = document.getElementById(`ws-img-${i}`);
+                wsImg.src = "ws1.png";
+                wsImg.style.height = ws1Height + "px"; 
                 
-                // 移除勝利動畫與恢復顯示老虎
+                const tgImg = document.getElementById(`tg-img-${i}`);
+                tgImg.src = "wstiger1.png";
+                tgImg.style.height = tg1Height + "px"; 
+                
                 const wsWrap = document.getElementById(`wusong-wrap-${i}`);
                 wsWrap.classList.remove('win-spin');
                 document.getElementById(`tiger-wrap-${i}`).style.display = 'flex';
