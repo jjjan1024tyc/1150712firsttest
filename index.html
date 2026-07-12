@@ -24,16 +24,16 @@
         #restartBtn { background-color: #607d8b; color: white; padding: 10px 20px; font-size: 18px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-left: 20px; }
         #restartBtn:hover { background-color: #455a64; }
 
-        /* 对战主要容器 */
+        /* 對戰主要容器 */
         #battlefield { display: none; justify-content: center; gap: 15px; flex: 1; padding: 0 10px; flex-wrap: wrap; align-items: flex-start; }
 
-        /* 针对不同人数的宽度分配 */
+        /* 針對不同人數的寬度分配 */
         .players-1 .player-zone { max-width: 800px; width: 100%; }
         .players-2 .player-zone { max-width: 48%; width: 100%; }
         .players-3 .player-zone { max-width: 32%; width: 100%; }
         .players-4 .player-zone { max-width: 24%; min-width: 240px; width: 100%; }
 
-        /* 单一玩家的区域 */
+        /* 單一玩家的區域 */
         .player-zone { 
             flex: 1; 
             background-color: #ffcc80; 
@@ -49,14 +49,14 @@
 
         .player-title { font-size: 22px; font-weight: bold; color: #4e342e; margin-bottom: 5px; }
         
-        /* 连线按钮区域 */
+        /* 連線按鈕區域 */
         .connect-area { margin-bottom: 10px; }
         .btn-connect { background-color: #ff9800; padding: 6px 12px; font-size: 15px; font-weight: bold; color: white; border: none; border-radius: 8px; cursor: pointer; transition: background 0.3s; }
         .btn-connect:hover { background-color: #e65100; }
         .btn-connect:disabled { background-color: #bdbdbd; cursor: not-allowed; }
         .status-text { display: block; font-size: 13px; margin-top: 4px; color: #d32f2f; font-weight: bold; }
 
-        /* 游戏舞台：宽高比锁定 16:9 */
+        /* 遊戲舞台：寬高比鎖定 16:9 */
         .stage { 
             width: 100%; 
             aspect-ratio: 16 / 9; 
@@ -67,14 +67,14 @@
             overflow: visible; 
         }
 
-        /* 角色基础容器 */
+        /* 角色基礎容器 */
         .char-container { 
             position: absolute; 
             bottom: 5px; 
             display: flex; 
             flex-direction: column;
             align-items: center;
-            transition: height 0.15s ease-out; /* 讓高度切換時有流暢的微縮感 */
+            transition: height 0.15s ease-out;
         }
         
         /* 武松基礎高度：平時佔舞台 75% */
@@ -85,12 +85,12 @@
             transform: translateX(-50%);
         } 
 
-        /* ✨ 核心變更 1：武松打下（觸發動態樣式）時，尺寸縮小為舞台高度的 60% */
+        /* 武松打下時，尺寸縮小為舞台高度的 60% */
         .wusong-wrap.wusong-strike {
             height: 60%;
         }
 
-        /* 老虎基礎高度：設定為 37.5%（縮小為武松原始尺寸的 50%） */
+        /* 老虎基礎高度：設定為 37.5% */
         .tiger-wrap { 
             height: 37.5%; 
             z-index: 1; 
@@ -118,11 +118,11 @@
             white-space: nowrap;
         }
 
-        /* ✨ 核心變更 2：爆炸圖精準移到老虎的頭頂上方（對齊老虎的水平 1/4 線，高於老虎身高） */
+        /* ✨ 核心變更 2：將爆炸圖設定在 right: 35%、自舞台底部向上 35% 處（vw 單位確保人數縮放時尺寸等比例完美適應） */
         .impact-effect {
              position: absolute; 
-             bottom: 42%; /* 老虎身高 37.5% + 底部 5px，設在 42% 剛好在頭頂上方 */
-             right: 25%; 
+             bottom: 35%; 
+             right: 35%; 
              transform: translate(50%, 0) scale(0.5);
              font-size: 5vw; 
              color: red; 
@@ -168,11 +168,11 @@
             40%, 80% { transform: translate(10px, 0) rotate(3deg); } 
         }
         
-        /* 爆炸圖特效：從老虎頭頂向上彈出放大 */
+        /* 爆炸圖特效：配合新位置向上微彈爆開 */
         @keyframes powEffect { 
-            0% { opacity: 0; transform: translate(50%, 20px) scale(0.5); } 
-            50% { opacity: 1; transform: translate(50%, -20px) scale(1.5) rotate(15deg); } 
-            100% { opacity: 0; transform: translate(50%, -40px) scale(2); } 
+            0% { opacity: 0; transform: translate(50%, 15px) scale(0.5); } 
+            50% { opacity: 1; transform: translate(50%, -15px) scale(1.5) rotate(15deg); } 
+            100% { opacity: 0; transform: translate(50%, -30px) scale(2); } 
         }
         @keyframes popIn { 0% { transform: scale(0) rotate(-180deg); } 80% { transform: scale(1.2) rotate(10deg); } 100% { transform: scale(1) rotate(0deg); } }
         
@@ -181,9 +181,9 @@
             100% { transform: translateX(-50%) scale(1.5) rotate(360deg); filter: drop-shadow(0 0 15px #fff); } 
         }
 
-        /* ✨ 核心變更 3：調整時間顯示區樣式，使其字型、顏色完全等同下方 footer */
-        .time-info { margin-top: 20px; font-size: 12px; color: #795548; font-weight: normal; }
-        footer { margin-top: 5px; padding: 5px; font-size: 12px; color: #795548; border-top: 1px solid #ffe0b2;}
+        /* ✨ 核心變更 1：時間格式與頁面底部排版樣式 */
+        footer { margin-top: 20px; padding: 5px; font-size: 12px; color: #795548; border-top: 1px solid #ffe0b2;}
+        .time-info { margin-top: 5px; font-size: 12px; color: #795548; font-weight: normal; }
     </style>
 </head>
 <body>
@@ -297,9 +297,8 @@
         </div>
     </div>
 
-    <div id="timeDisplay" class="time-info"></div>
-
     <footer>Taoyuan City Jianguo Junior High School Teacher Chan Chih Chieh (2026)</footer>
+    <div id="timeDisplay" class="time-info"></div>
 
     <script>
         const UART_SERVICE_UUID = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
@@ -321,7 +320,6 @@
             updateGeneratedTime();
         };
 
-        /* ✨ 核心變更 3：顯示格式改為「最後修改：...」 */
         function updateGeneratedTime() {
             const now = new Date();
             const year = now.getFullYear();
@@ -456,23 +454,31 @@
             const wsImg = document.getElementById(`ws-img-${playerId}`);
             const wsWrap = document.getElementById(`wusong-wrap-${playerId}`);
             wsImg.src = "ws2.png";
-            wsWrap.classList.add('wusong-strike'); /* 此處會同時觸發平移與 60% 高度微縮 */
+            wsWrap.classList.add('wusong-strike');
 
             const tgImg = document.getElementById(`tg-img-${playerId}`);
             const tgWrap = document.getElementById(`tiger-wrap-${playerId}`);
             tgImg.src = "wstiger2.png";
             tgWrap.classList.add('tiger-hit');
 
+            // 增加一個旗標判斷此打擊是否為致勝擊
+            const isWinningHit = (p.score + 1 >= maxScore);
+
             setTimeout(() => {
-                if(!gameEnded) {
-                    wsImg.src = "ws1.png";
-                }
+                // ✨ 核心變更 3：如果不是致勝擊，或就算是致勝擊也先讓圖片回復基本狀態
+                wsImg.src = "ws1.png";
+                
                 zone.classList.remove('hit-flash');
                 document.getElementById(`impact-${playerId}`).classList.remove('show-impact');
                 wsWrap.classList.remove('wusong-strike');
                 tgWrap.classList.remove('tiger-hit');
                 tgImg.src = "wstiger1.png";
                 p.isAttacking = false;
+
+                // ✨ 核心變更 3：精準在 350 毫秒打擊動畫與爆炸結束後，再啟動勝利大改版旋轉動作
+                if (isWinningHit && !gameEnded) {
+                    declareWinner(playerId);
+                }
             }, 350);
 
             p.score++;
@@ -482,10 +488,6 @@
             trophy.src = 'wstiger2.png';
             trophy.className = 'mini-tiger';
             document.getElementById(`trophy-${playerId}`).appendChild(trophy);
-
-            if (p.score >= maxScore) {
-                declareWinner(playerId);
-            }
         }
 
         function declareWinner(playerId) {
