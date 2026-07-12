@@ -77,7 +77,7 @@
             transition: height 0.15s ease-out;
         }
         
-        /* ✨ 核心變更 4：武松未打時圖片高度改為 85% */
+        /* 武松未打時圖片高度改為 85% */
         .wusong-wrap { 
             height: 85%;
             z-index: 2; 
@@ -85,12 +85,12 @@
             transform: translateX(-50%);
         } 
 
-        /* ✨ 核心變更 4：武松打下時高度改為 70% */
+        /* 武松打下時高度改為 70% */
         .wusong-wrap.wusong-strike {
             height: 70%;
         }
 
-        /* ✨ 核心變更 4：老虎尺寸放大 20% (37.5% * 1.2 = 45%) */
+        /* 老虎尺寸放大 20% (37.5% * 1.2 = 45%) */
         .tiger-wrap { 
             height: 45%; 
             z-index: 1; 
@@ -118,13 +118,13 @@
             white-space: nowrap;
         }
 
-        /* ✨ 核心變更 1：爆炸圖設定在 right: 35% 以及底部向上 30% 處 */
+        /* 爆炸圖設定在 right: 35% 以及底部向上 30% 處 */
         .impact-effect {
              position: absolute; 
              bottom: 30%; 
              right: 35%; 
              transform: translate(50%, 0) scale(0.5);
-             font-size: 6vw; /* 基準尺寸（1人模式下） */
+             font-size: 6vw; 
              color: red; 
              text-shadow: 2px 2px 0 yellow, -2px -2px 0 yellow;
              opacity: 0; 
@@ -132,7 +132,7 @@
              pointer-events: none;
         }
 
-        /* ✨ 核心變更 2：在 2、3、4 人模式下，爆炸圖尺寸等比例縮小 */
+        /* 在 2、3、4 人模式下，爆炸圖尺寸等比例縮小 */
         .players-1 .impact-effect { font-size: 6vw; }
         .players-2 .impact-effect { font-size: 3.8vw; }
         .players-3 .impact-effect { font-size: 2.6vw; }
@@ -174,7 +174,7 @@
             40%, 80% { transform: translate(10px, 0) rotate(3deg); } 
         }
         
-        /* 爆炸圖特效：配合新位置向上微彈爆開 */
+        /* 爆炸圖特效 */
         @keyframes powEffect { 
             0% { opacity: 0; transform: translate(50%, 15px) scale(0.5); } 
             50% { opacity: 1; transform: translate(50%, -15px) scale(1.4) rotate(15deg); } 
@@ -205,7 +205,7 @@
         <button class="mode-btn" id="mode-2" onclick="setPlayerCount(2)">2人</button>
         <button class="mode-btn" id="mode-3" onclick="setPlayerCount(3)">3人</button>
         <button class="mode-btn" id="mode-4" onclick="setPlayerCount(4)">4人</button>
-        <button id="restartBtn" onclick="resetAll()">🔄 重新開始比賽</button>
+        <button id="restartBtn" onclick="resetAll()">🔄 重新開始</button>
     </div>
 
     <div style="display:none;">
@@ -474,7 +474,12 @@
                 document.getElementById(`impact-${playerId}`).classList.remove('show-impact');
                 wsWrap.classList.remove('wusong-strike');
                 tgWrap.classList.remove('tiger-hit');
-                tgImg.src = "wstiger1.png";
+                
+                // 如果是贏得比賽的那一下，計時終了時，不將圖片還原為 wstiger1，讓其維持在 wstiger2
+                if (!isWinningHit) {
+                    tgImg.src = "wstiger1.png";
+                }
+                
                 p.isAttacking = false;
 
                 if (isWinningHit && !gameEnded) {
@@ -501,7 +506,10 @@
 
             const wsWrap = document.getElementById(`wusong-wrap-${playerId}`);
             wsWrap.classList.add('win-spin');
-            document.getElementById(`tiger-wrap-${playerId}`).style.display = 'none';
+            
+            // ✨ 核心變更 1：移除原本使老虎消失的隱藏程式碼，改為確保顯示並鎖定為 wstiger2.png
+            const tgImg = document.getElementById(`tg-img-${playerId}`);
+            tgImg.src = "wstiger2.png";
 
             var duration = 3000;
             var animationEnd = Date.now() + duration;
