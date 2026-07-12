@@ -77,17 +77,17 @@
             transition: height 0.15s ease-out;
         }
         
-        /* 武松未打時圖片高度改為 85% */
+        /* ✨ 核心變更：武松未打時圖片高度改為 95% */
         .wusong-wrap { 
-            height: 85%;
+            height: 95%;
             z-index: 2; 
             left: 25%; 
             transform: translateX(-50%);
         } 
 
-        /* 武松打下時高度改為 70% */
+        /* ✨ 核心變更：武松打下時高度改為 75% */
         .wusong-wrap.wusong-strike {
-            height: 70%;
+            height: 75%;
         }
 
         /* 老虎尺寸放大 20% (37.5% * 1.2 = 45%) */
@@ -475,7 +475,6 @@
                 wsWrap.classList.remove('wusong-strike');
                 tgWrap.classList.remove('tiger-hit');
                 
-                // 如果是贏得比賽的那一下，計時終了時，不將圖片還原為 wstiger1，讓其維持在 wstiger2
                 if (!isWinningHit) {
                     tgImg.src = "wstiger1.png";
                 }
@@ -507,7 +506,6 @@
             const wsWrap = document.getElementById(`wusong-wrap-${playerId}`);
             wsWrap.classList.add('win-spin');
             
-            // ✨ 核心變更 1：移除原本使老虎消失的隱藏程式碼，改為確保顯示並鎖定為 wstiger2.png
             const tgImg = document.getElementById(`tg-img-${playerId}`);
             tgImg.src = "wstiger2.png";
 
