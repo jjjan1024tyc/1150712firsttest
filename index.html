@@ -3,417 +3,406 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>武松打虎 - 特教體感加強版</title>
+    <title>武松打虎 - 三人對戰加強版</title>
     <style>
-        body { font-family: 'Microsoft JhengHei', sans-serif; text-align: center; background-color: #fff3e0; margin: 0; padding: 20px; transition: background-color 0.1s; display: flex; flex-direction: column; min-height: 95vh; }
-        .main-content { flex: 1; }
-        h1 { color: #d84315; margin-bottom: 5px; }
+        body { font-family: 'Microsoft JhengHei', sans-serif; text-align: center; background-color: #fff3e0; margin: 0; padding: 10px; display: flex; flex-direction: column; min-height: 98vh; overflow-x: hidden; }
+        h1 { color: #d84315; margin: 10px 0; font-size: 32px; }
         
-        /* 控制面板區域 */
-        .control-panel { margin-bottom: 15px; padding: 10px; background-color: #ffe0b2; border-radius: 10px; display: inline-block; }
-        .btn { padding: 10px 20px; font-size: 16px; font-weight: bold; color: white; border: none; border-radius: 8px; cursor: pointer; margin: 5px; transition: all 0.3s; }
-        #connectBtn { background-color: #ff9800; }
-        #connectBtn:hover { background-color: #e65100; }
-        #connectBtn:disabled { background-color: #bdbdbd; cursor: not-allowed; }
-        
-        #disconnectBtn { background-color: #d32f2f; display: none; }
-        #disconnectBtn:hover { background-color: #b71c1c; }
+        /* 頂部控制區與音效解鎖 */
+        #topControls { background-color: #ffe0b2; padding: 10px; border-radius: 10px; margin-bottom: 10px; display: inline-block; }
+        #unlockAudioBtn { background-color: #e91e63; color: white; padding: 10px 20px; font-size: 18px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; animation: pulse 2s infinite; }
+        #unlockAudioBtn:hover { background-color: #c2185b; }
+        #unlockAudioBtn.unlocked { background-color: #4caf50; animation: none; cursor: default; }
 
-        #connectionStatus { font-weight: bold; margin-left: 10px; color: #555; }
+        /* 三人對戰主要容器 */
+        #battlefield { display: flex; justify-content: space-between; gap: 15px; flex: 1; padding: 0 10px; }
 
-        /* 遊戲主舞台 - 調整版面讓兩者靠近 */
-        #gameStage { 
-            margin: 10px auto; 
-            max-width: 800px; 
+        /* 單一玩家的區域 */
+        .player-zone { 
+            flex: 1; 
             background-color: #ffcc80; 
-            border: 5px solid #8d6e63; 
-            border-radius: 20px; 
-            height: 400px; /* 增加高度 */
-            display: flex; 
-            align-items: flex-end; /* 底部對齊 */
-            justify-content: center; /* 置中 */
-            position: relative; 
-            overflow: hidden; 
-            padding-bottom: 20px;
-        }
-        
-        /* 角色圖片容器 - 調整相對位置 */
-        .character-container { 
-            position: relative; 
-            display: flex; 
-            justify-content: flex-end; 
-            align-items: center; 
-            flex-direction: column; 
-        }
-        
-        /* 武松容器，微調位置 */
-        #wusong-container {
-            z-index: 2; /* 讓武松的棍子可以蓋在老虎上方 */
-            margin-right: -40px; /* 向右靠，與老虎重疊 */
-        }
-        
-        /* 老虎容器，微調位置 */
-        #tiger-container {
-            z-index: 1;
-            margin-left: -40px; /* 向左靠，與武松重疊 */
+            border: 4px solid #8d6e63; 
+            border-radius: 15px; 
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
         }
 
+        .player-title { font-size: 24px; font-weight: bold; color: #4e342e; margin-bottom: 5px; }
+        
+        /* 連線按鈕區域 */
+        .connect-area { margin-bottom: 10px; }
+        .btn { padding: 8px 15px; font-size: 16px; font-weight: bold; color: white; border: none; border-radius: 8px; cursor: pointer; transition: background 0.3s; }
+        .btn-connect { background-color: #ff9800; }
+        .btn-connect:hover { background-color: #e65100; }
+        .btn-connect:disabled { background-color: #bdbdbd; cursor: not-allowed; }
+        .status-text { display: block; font-size: 14px; margin-top: 5px; color: #d32f2f; font-weight: bold; }
+
+        /* 遊戲小舞台 */
+        .stage { 
+            width: 100%; 
+            height: 350px; /* 控制舞台高度，圖片過大會被裁剪或需要縮放 */
+            position: relative; 
+            display: flex; 
+            align-items: flex-end; 
+            justify-content: center;
+            background-color: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            overflow: hidden; /* 防止圖片超出舞台 */
+            margin-bottom: 10px;
+        }
+
+        /* 角色圖片容器 - 移除對圖片尺寸的強制限制，改用原始尺寸或透過容器縮放 */
+        .char-container { position: relative; display: flex; flex-direction: column; align-items: center; }
+        
+        /* 武松在左，老虎在右，並稍微重疊 */
+        .wusong-wrap { z-index: 2; margin-right: -20px; }
+        .tiger-wrap { z-index: 1; margin-left: -20px; }
+
+        /* 關鍵：圖片不再限制固定高度，讓它呈現原始尺寸，但受限於 max-width 避免破版 */
         .char-img { 
-            max-width: 100%; 
-            /* 調整預設大小 */
-            height: 300px; 
+            /* 移除固定 height，讓圖片保持原始比例與尺寸 */
+            /* 如果原始圖片真的太大，可以使用 max-height 限制在舞台內 */
+            max-height: 320px; 
+            max-width: 100%;
             object-fit: contain; 
             transition: transform 0.1s; 
-        }
-        
-        /* 針對武松打擊圖的特別調整，確保棍子位置正確 */
-        #wusongImg {
-             transform-origin: bottom center; /* 動畫基準點設在底部 */
+            transform-origin: bottom center;
         }
 
-        .char-name { font-size: 20px; font-weight: bold; margin-top: 10px; color: #5d4037; background-color: rgba(255,255,255,0.7); padding: 2px 10px; border-radius: 10px;}
-        .fallback-emoji { font-size: 100px; display: none; }
+        /* 特效圖層 */
+        .impact-effect {
+             position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);
+             font-size: 80px; color: red; text-shadow: 2px 2px 0 yellow, -2px -2px 0 yellow;
+             opacity: 0; z-index: 10; pointer-events: none;
+        }
 
-        /* 特效動畫 */
-        /* 震撼的背景閃爍 */
-        .hit-flash { animation: flashBg 0.2s ease-out; }
-        
-        /* 武松打擊時的輕微前傾 */
+        /* 分數與戰利品區 */
+        .score-board { font-size: 20px; font-weight: bold; color: #5d4037; margin: 5px 0; }
+        .trophy-case { 
+            width: 100%; min-height: 80px; background-color: #fff; border: 2px dashed #ffb74d; 
+            border-radius: 10px; padding: 5px; display: flex; flex-wrap: wrap; gap: 5px; 
+            justify-content: center; align-items: center; align-content: flex-start;
+        }
+        .mini-tiger { height: 40px; object-fit: contain; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+
+        /* 動畫特效 */
         .wusong-strike { animation: strikeForward 0.2s ease-out; }
-
-        /* 老虎被打到的劇烈震動與縮放 */
         .tiger-hit { animation: hitShake 0.3s cubic-bezier(.36,.07,.19,.97) both; filter: brightness(1.2) contrast(1.2); }
+        .show-impact { animation: powEffect 0.3s ease-out; }
+        .hit-flash { animation: flashBg 0.2s ease-out; }
 
-        /* 計分板與戰利品區 */
-        #scoreBoard { font-size: 24px; font-weight: bold; color: #5d4037; margin: 10px; }
-        #tigerContainer { margin: 10px auto; max-width: 800px; min-height: 100px; background-color: #fff; border: 3px dashed #ffb74d; border-radius: 15px; padding: 10px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center;}
-        
-        /* 收集到的小老虎圖案 */
-        .mini-tiger { height: 60px; object-fit: contain; animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .mini-tiger-fallback { font-size: 50px; animation: popIn 0.4s; }
-
-        /* 結束畫面 */
-        #gameOverModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); color: white; justify-content: center; align-items: center; flex-direction: column; z-index: 100; }
-        #restartBtn { padding: 15px 30px; font-size: 24px; background-color: #4caf50; color: white; border: none; border-radius: 8px; cursor: pointer; margin-top:20px; }
-
-        /* 頁尾宣告 */
-        footer { margin-top: 20px; padding: 10px; font-size: 14px; color: #795548; border-top: 1px solid #ffcc80; }
+        /* 勝利畫面 */
+        #winnerModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); color: white; justify-content: center; align-items: center; flex-direction: column; z-index: 1000; }
+        #winnerText { font-size: 60px; color: #ffd54f; margin: 10px 0; text-shadow: 0 0 20px #ff9800; animation: pulse 1s infinite; }
+        #restartBtn { padding: 15px 40px; font-size: 24px; background-color: #4caf50; color: white; border: none; border-radius: 10px; cursor: pointer; margin-top: 30px; }
 
         /* 動畫定義 */
-        @keyframes flashBg {
-            0% { background-color: #fff3e0; }
-            30% { background-color: #ff0000; box-shadow: inset 0 0 100px #ffeb3b; } /* 更強烈的紅黃閃光 */
-            100% { background-color: #fff3e0; }
-        }
+        @keyframes flashBg { 0% { background-color: #ffcc80; } 30% { background-color: #ff5252; box-shadow: inset 0 0 50px #ffeb3b; } 100% { background-color: #ffcc80; } }
+        @keyframes strikeForward { 0% { transform: scale(1) translateX(0); } 50% { transform: scale(1.05) translateX(15px); } 100% { transform: scale(1) translateX(0); } }
+        @keyframes hitShake { 0%, 100% { transform: translate(0, 0); } 20%, 60% { transform: translate(-8px, 8px) rotate(-3deg); } 40%, 80% { transform: translate(8px, -8px) rotate(3deg); } }
+        @keyframes powEffect { 0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); } 50% { opacity: 1; transform: translate(-50%, -50%) scale(1.5) rotate(15deg); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(2); } }
+        @keyframes popIn { 0% { transform: scale(0) rotate(-180deg); } 80% { transform: scale(1.2) rotate(10deg); } 100% { transform: scale(1) rotate(0deg); } }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
         
-        @keyframes strikeForward {
-             0% { transform: scale(1) translateX(0); }
-             50% { transform: scale(1.05) translateX(10px); } /* 稍微變大並往前 */
-             100% { transform: scale(1) translateX(0); }
-        }
-
-        @keyframes hitShake {
-            0% { transform: translate(0, 0) scale(1); }
-            20% { transform: translate(-10px, 10px) scale(0.9) rotate(-5deg); }
-            40% { transform: translate(10px, -10px) scale(0.9) rotate(5deg); }
-            60% { transform: translate(-10px, -10px) scale(0.9) rotate(-5deg); }
-            80% { transform: translate(10px, 10px) scale(0.9) rotate(5deg); }
-            100% { transform: translate(0, 0) scale(1); }
-        }
-        
-        @keyframes popIn {
-            0% { transform: scale(0) rotate(-180deg); opacity: 0; }
-            80% { transform: scale(1.2) rotate(10deg); }
-            100% { transform: scale(1) rotate(0deg); opacity: 1; }
-        }
-        
-        /* 新增：受擊特效圖層 */
-        #impact-effect {
-             position: absolute;
-             top: 40%;
-             left: 50%;
-             transform: translate(-50%, -50%);
-             font-size: 100px;
-             color: red;
-             text-shadow: 2px 2px 0 yellow, -2px -2px 0 yellow, 2px -2px 0 yellow, -2px 2px 0 yellow;
-             opacity: 0;
-             z-index: 10;
-             pointer-events: none;
-        }
-        
-        .show-impact {
-             animation: powEffect 0.3s ease-out;
-        }
-        
-        @keyframes powEffect {
-             0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
-             50% { opacity: 1; transform: translate(-50%, -50%) scale(1.5) rotate(15deg); }
-             100% { opacity: 0; transform: translate(-50%, -50%) scale(2); }
-        }
-
+        footer { margin-top: 10px; padding: 5px; font-size: 12px; color: #795548; }
     </style>
 </head>
 <body>
 
-    <div class="main-content">
-        <h1>🐯 武松打虎 - 體感挑戰賽 🐯</h1>
-        
-        <div class="control-panel">
-            <button id="connectBtn" class="btn">🟢 建立連線 (開始遊戲)</button>
-            <button id="disconnectBtn" class="btn">🔴 中斷/重置連線狀態</button>
-            <span id="connectionStatus">狀態：未連線</span>
-        </div>
-        
-        <div id="scoreBoard">目前戰績：<span id="scoreText">0</span> / 10 隻</div>
-
-        <div id="gameStage">
-            <!-- 爆擊特效層 -->
-            <div id="impact-effect">💥</div>
-
-            <!-- 武松區 (左側) -->
-            <div id="wusong-container" class="character-container">
-                <img id="wusongImg" class="char-img" src="ws1.png" alt="武松" 
-                     onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                <span class="fallback-emoji">🧑‍🌾</span>
-                <div class="char-name">武松</div>
-            </div>
-            
-            <!-- 老虎區 (右側) -->
-            <div id="tiger-container" class="character-container">
-                <img id="tigerImg" class="char-img" src="wstiger1.png" alt="大老虎"
-                     onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                <span class="fallback-emoji">🐯</span>
-                <div class="char-name">大老虎</div>
-            </div>
-        </div>
-
-        <h3>收服的小老虎戰利品：</h3>
-        <div id="tigerContainer"></div>
-
-        <div id="gameOverModal">
-            <h2 style="font-size: 60px; color: #ffd54f; margin: 0;">🎉 恭喜大獲全勝！ 🎉</h2>
-            <img src="wstiger2.png" style="height: 150px; margin: 20px 0;" onerror="this.style.display='none'">
-            <p style="font-size: 32px; margin: 10px 0;">村莊恢復了和平！</p>
-            <button id="restartBtn" onclick="resetGame()">再來一局</button>
-        </div>
-
-        <!-- 音效檔：使用更強烈的打擊音效 -->
-        <audio id="hitSound" src="https://www.soundjay.com/human/sounds/punch-2.mp3" preload="auto"></audio>
-        <!-- 可以加入第二種音效增加豐富度 -->
-        <audio id="roarSound" src="https://www.soundjay.com/nature/sounds/lion-roar-1.mp3" preload="auto"></audio>
+    <h1>🐯 武松打虎 - 三人對戰賽 🐯</h1>
+    
+    <div id="topControls">
+        <!-- 音效解鎖按鈕：解決瀏覽器阻擋自動播放音效的問題 -->
+        <button id="unlockAudioBtn" onclick="unlockAudio()">🔊 點擊此處解鎖遊戲音效 (必須先點)</button>
     </div>
 
-    <!-- 開發者版權宣告 -->
+    <!-- 隱藏的音效庫 (使用較穩定且強烈的打擊聲) -->
+    <div style="display:none;">
+        <audio id="snd-hit-1" src="https://assets.mixkit.co/active_storage/sfx/2043/2043-preview.mp3" preload="auto"></audio>
+        <audio id="snd-hit-2" src="https://assets.mixkit.co/active_storage/sfx/2043/2043-preview.mp3" preload="auto"></audio>
+        <audio id="snd-hit-3" src="https://assets.mixkit.co/active_storage/sfx/2043/2043-preview.mp3" preload="auto"></audio>
+    </div>
+
+    <div id="battlefield">
+        <!-- 玩家 1 (左) -->
+        <div class="player-zone" id="zone-1">
+            <div class="player-title">🟢 左路武松</div>
+            <div class="connect-area">
+                <button class="btn btn-connect" id="btn-conn-1" onclick="connectDevice(1)">連線左邊 Micro:bit</button>
+                <span class="status-text" id="status-1">未連線</span>
+            </div>
+            <div class="stage" id="stage-1" onclick="simulateAttack(1)">
+                <div class="impact-effect" id="impact-1">💥</div>
+                <div class="char-container wusong-wrap" id="wusong-wrap-1">
+                    <img id="ws-img-1" class="char-img" src="ws1.png" alt="武松">
+                </div>
+                <div class="char-container tiger-wrap" id="tiger-wrap-1">
+                    <img id="tg-img-1" class="char-img" src="wstiger1.png" alt="老虎">
+                </div>
+            </div>
+            <div class="score-board">戰績：<span id="score-1">0</span> / 10</div>
+            <div class="trophy-case" id="trophy-1"></div>
+        </div>
+
+        <!-- 玩家 2 (中) -->
+        <div class="player-zone" id="zone-2">
+            <div class="player-title">🟡 中路武松</div>
+            <div class="connect-area">
+                <button class="btn btn-connect" id="btn-conn-2" onclick="connectDevice(2)">連線中間 Micro:bit</button>
+                <span class="status-text" id="status-2">未連線</span>
+            </div>
+            <div class="stage" id="stage-2" onclick="simulateAttack(2)">
+                <div class="impact-effect" id="impact-2">💥</div>
+                <div class="char-container wusong-wrap" id="wusong-wrap-2">
+                    <img id="ws-img-2" class="char-img" src="ws1.png" alt="武松">
+                </div>
+                <div class="char-container tiger-wrap" id="tiger-wrap-2">
+                    <img id="tg-img-2" class="char-img" src="wstiger1.png" alt="老虎">
+                </div>
+            </div>
+            <div class="score-board">戰績：<span id="score-2">0</span> / 10</div>
+            <div class="trophy-case" id="trophy-2"></div>
+        </div>
+
+        <!-- 玩家 3 (右) -->
+        <div class="player-zone" id="zone-3">
+            <div class="player-title">🔴 右路武松</div>
+            <div class="connect-area">
+                <button class="btn btn-connect" id="btn-conn-3" onclick="connectDevice(3)">連線右邊 Micro:bit</button>
+                <span class="status-text" id="status-3">未連線</span>
+            </div>
+            <div class="stage" id="stage-3" onclick="simulateAttack(3)">
+                <div class="impact-effect" id="impact-3">💥</div>
+                <div class="char-container wusong-wrap" id="wusong-wrap-3">
+                    <img id="ws-img-3" class="char-img" src="ws1.png" alt="武松">
+                </div>
+                <div class="char-container tiger-wrap" id="tiger-wrap-3">
+                    <img id="tg-img-3" class="char-img" src="wstiger1.png" alt="老虎">
+                </div>
+            </div>
+            <div class="score-board">戰績：<span id="score-3">0</span> / 10</div>
+            <div class="trophy-case" id="trophy-3"></div>
+        </div>
+    </div>
+
+    <!-- 勝利畫面 -->
+    <div id="winnerModal">
+        <h2 style="font-size: 40px; margin:0;">🎉 比賽結束 🎉</h2>
+        <div id="winnerText">🏆 左路武松 獲勝！</div>
+        <img src="wstiger2.png" style="height: 150px; margin: 10px;">
+        <button id="restartBtn" onclick="resetAll()">重新開始比賽</button>
+    </div>
+
     <footer>Taoyuan City Jianguo Junior High School Teacher Chan Chih Chieh (2026)</footer>
 
     <script>
         const UART_SERVICE_UUID = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
         const TX_CHARACTERISTIC_UUID = '6e400002-b5a3-f393-e0a9-e50e24dcca9e';
 
-        let bluetoothDevice;
-        let gattServer;
-        let score = 0;
-        let receivedBuffer = "";
-        const hitSound = document.getElementById('hitSound');
-        const roarSound = document.getElementById('roarSound');
-        hitSound.volume = 1.0; 
-        roarSound.volume = 0.5;
+        // 玩家資料結構
+        const players = {
+            1: { score: 0, device: null, server: null, buffer: "", isAttacking: false, name: "左路武松" },
+            2: { score: 0, device: null, server: null, buffer: "", isAttacking: false, name: "中路武松" },
+            3: { score: 0, device: null, server: null, buffer: "", isAttacking: false, name: "右路武松" }
+        };
 
-        const connectBtn = document.getElementById('connectBtn');
-        const disconnectBtn = document.getElementById('disconnectBtn');
-        const statusText = document.getElementById('connectionStatus');
-        
-        let isAttacking = false; // 防止連續快速觸發導致動畫錯亂
+        let gameEnded = false;
+        let audioUnlocked = false;
 
-        // 開發測試用：允許點擊螢幕也能觸發攻擊 (方便沒有 micro:bit 時測試)
-        document.getElementById('gameStage').addEventListener('click', () => {
-             if(score < 10 && !isAttacking) {
-                 wusongAttack();
-             }
-        });
+        // 【關鍵】解鎖音效：播放極短靜音或低音量音效來欺騙瀏覽器
+        function unlockAudio() {
+            if(audioUnlocked) return;
+            
+            for(let i=1; i<=3; i++) {
+                const snd = document.getElementById(`snd-hit-${i}`);
+                snd.volume = 0; // 先設為靜音播放
+                snd.play().then(() => {
+                    snd.pause();
+                    snd.currentTime = 0;
+                    snd.volume = 1.0; // 恢復音量
+                }).catch(e => console.log("解鎖失敗", e));
+            }
+            
+            audioUnlocked = true;
+            const btn = document.getElementById('unlockAudioBtn');
+            btn.innerText = "✅ 音效已解鎖";
+            btn.classList.add('unlocked');
+        }
 
-        connectBtn.addEventListener('click', async () => {
+        // 連線指定玩家的設備
+        async function connectDevice(playerId) {
+            const btn = document.getElementById(`btn-conn-${playerId}`);
+            const status = document.getElementById(`status-${playerId}`);
+            
             try {
-                statusText.innerText = "狀態：搜尋裝置中...";
-                bluetoothDevice = await navigator.bluetooth.requestDevice({
+                status.innerText = "搜尋裝置中...";
+                status.style.color = "#ff9800";
+                
+                const device = await navigator.bluetooth.requestDevice({
                     filters: [{ namePrefix: 'BBC micro:bit' }],
                     optionalServices: [UART_SERVICE_UUID]
                 });
 
-                bluetoothDevice.addEventListener('gattserverdisconnected', onDisconnected);
+                players[playerId].device = device;
+                device.addEventListener('gattserverdisconnected', () => handleDisconnect(playerId));
 
-                statusText.innerText = "狀態：連線中...";
-                gattServer = await bluetoothDevice.gatt.connect();
-                const service = await gattServer.getPrimaryService(UART_SERVICE_UUID);
+                status.innerText = "連線中...";
+                const server = await device.gatt.connect();
+                players[playerId].server = server;
+                
+                const service = await server.getPrimaryService(UART_SERVICE_UUID);
                 const characteristic = await service.getCharacteristic(TX_CHARACTERISTIC_UUID);
                 
                 await characteristic.startNotifications();
-                characteristic.addEventListener('characteristicvaluechanged', handleDataChanged);
                 
-                updateConnectionUI(true);
-                console.log("連線成功！");
+                // 綁定特定玩家的資料處理函式
+                characteristic.addEventListener('characteristicvaluechanged', (e) => handleData(e, playerId));
+                
+                btn.innerText = "🟢 已連線";
+                btn.disabled = true;
+                status.innerText = "連線穩定";
+                status.style.color = "green";
 
             } catch (error) {
-                console.error("連線失敗", error);
-                statusText.innerText = `狀態：連線失敗 (${error.message || '使用者取消'})`;
-                updateConnectionUI(false);
-            }
-        });
-
-        disconnectBtn.addEventListener('click', () => {
-            if (gattServer && gattServer.connected) {
-                statusText.innerText = "狀態：正在中斷...";
-                gattServer.disconnect(); 
-            } else {
-                onDisconnected();
-            }
-        });
-
-        function onDisconnected() {
-            console.log("已斷線");
-            updateConnectionUI(false);
-            bluetoothDevice = null;
-            gattServer = null;
-        }
-
-        function updateConnectionUI(isConnected) {
-            if (isConnected) {
-                connectBtn.innerText = "🟢 已連線，遊戲開始！";
-                connectBtn.disabled = true;
-                disconnectBtn.style.display = "inline-block";
-                statusText.innerText = "狀態：連線穩定";
-                statusText.style.color = "green";
-            } else {
-                connectBtn.innerText = "🟢 建立連線 (開始遊戲)";
-                connectBtn.disabled = false;
-                disconnectBtn.style.display = "none";
-                statusText.innerText = "狀態：未連線 (請重新連線)";
-                statusText.style.color = "#d32f2f";
+                console.error(`玩家 ${playerId} 連線失敗`, error);
+                status.innerText = "連線失敗或取消";
+                status.style.color = "red";
             }
         }
 
-        function handleDataChanged(event) {
+        function handleDisconnect(playerId) {
+            const btn = document.getElementById(`btn-conn-${playerId}`);
+            const status = document.getElementById(`status-${playerId}`);
+            btn.innerText = "重新連線";
+            btn.disabled = false;
+            status.innerText = "已斷線";
+            status.style.color = "red";
+            players[playerId].device = null;
+            players[playerId].server = null;
+        }
+
+        // 處理收到的資料
+        function handleData(event, playerId) {
+            if (gameEnded) return;
+            
             const value = event.target.value;
             const decoder = new TextDecoder('utf-8');
-            receivedBuffer += decoder.decode(value);
+            players[playerId].buffer += decoder.decode(value);
 
-            if (receivedBuffer.includes('\n')) {
-                const lines = receivedBuffer.split('\n');
+            if (players[playerId].buffer.includes('\n')) {
+                const lines = players[playerId].buffer.split('\n');
                 const latestData = lines[lines.length - 2].trim();
-                receivedBuffer = lines[lines.length - 1];
+                players[playerId].buffer = lines[lines.length - 1];
 
-                if (latestData === "HIT" && !isAttacking) {
-                    wusongAttack();
+                if (latestData === "HIT") {
+                    executeAttack(playerId);
                 }
             }
         }
 
-        function wusongAttack() {
-            if (score >= 10 || isAttacking) return;
-            isAttacking = true;
+        // 開發測試用：點擊舞台模擬打擊
+        function simulateAttack(playerId) {
+            if(!gameEnded) executeAttack(playerId);
+        }
 
-            // 1. 播放音效
-            hitSound.currentTime = 0;
-            hitSound.play().catch(e => console.log("音效被阻擋"));
-            
-            // 隨機播放老虎吼叫聲增加震撼感
-            if(Math.random() > 0.5) {
-                roarSound.currentTime = 0;
-                roarSound.play().catch(e => console.log("音效被阻擋"));
+        // 執行攻擊邏輯
+        function executeAttack(playerId) {
+            const p = players[playerId];
+            if (p.isAttacking || gameEnded) return;
+            p.isAttacking = true;
+
+            // 1. 播放專屬音效
+            if(audioUnlocked) {
+                const snd = document.getElementById(`snd-hit-${playerId}`);
+                snd.currentTime = 0;
+                snd.play().catch(e => console.log("音效未解鎖", e));
             }
 
-            // 2. 震撼背景閃爍
-            document.body.classList.add('hit-flash');
-
-            // 3. 爆擊特效圖層
-            const impactEffect = document.getElementById('impact-effect');
-            impactEffect.classList.add('show-impact');
-
-            // 4. 武松切換打擊圖案並加上前傾動畫
-            const wusongImg = document.getElementById('wusongImg');
-            const wusongContainer = document.getElementById('wusong-container');
+            // 2. 觸發畫面特效
+            const zone = document.getElementById(`zone-${playerId}`);
+            zone.classList.add('hit-flash');
             
-            if (wusongImg.style.display !== 'none') {
-                wusongImg.src = "ws2.png"; // 換成打擊圖 (棍子打下)
-            }
-            wusongContainer.classList.add('wusong-strike');
+            const impact = document.getElementById(`impact-${playerId}`);
+            impact.classList.add('show-impact');
 
-            // 5. 老虎切換成被打的圖案，並加上劇烈震動動畫
-            const tigerImg = document.getElementById('tigerImg');
-            const tigerContainer = document.getElementById('tiger-container');
-            
-            if (tigerImg.style.display !== 'none') {
-                tigerImg.src = "wstiger2.png"; // 換成被打的老虎圖案
-            }
-            tigerContainer.classList.add('tiger-hit');
-            
-            // 延遲後復原狀態 (約 400 毫秒)
+            // 3. 圖片切換與動畫
+            const wsImg = document.getElementById(`ws-img-${playerId}`);
+            const wsWrap = document.getElementById(`wusong-wrap-${playerId}`);
+            wsImg.src = "ws2.png";
+            wsWrap.classList.add('wusong-strike');
+
+            const tgImg = document.getElementById(`tg-img-${playerId}`);
+            const tgWrap = document.getElementById(`tiger-wrap-${playerId}`);
+            tgImg.src = "wstiger2.png";
+            tgWrap.classList.add('tiger-hit');
+
+            // 復原動畫狀態
             setTimeout(() => {
-                document.body.classList.remove('hit-flash');
-                impactEffect.classList.remove('show-impact');
-                wusongContainer.classList.remove('wusong-strike');
-                tigerContainer.classList.remove('tiger-hit');
-                
-                // 圖案復原
-                if (wusongImg.style.display !== 'none') {
-                    wusongImg.src = "ws1.png"; // 武松恢復舉棍準備
-                }
-                if (tigerImg.style.display !== 'none') {
-                    tigerImg.src = "wstiger1.png"; // 老虎恢復原本樣子
-                }
-                
-                isAttacking = false; // 解除攻擊鎖定
-            }, 400);
+                zone.classList.remove('hit-flash');
+                impact.classList.remove('show-impact');
+                wsWrap.classList.remove('wusong-strike');
+                tgWrap.classList.remove('tiger-hit');
+                wsImg.src = "ws1.png";
+                tgImg.src = "wstiger1.png";
+                p.isAttacking = false;
+            }, 350);
 
             // 計分與戰利品
-            score++;
-            document.getElementById('scoreText').innerText = score;
-            addMiniTiger();
+            p.score++;
+            document.getElementById(`score-${playerId}`).innerText = p.score;
+            
+            const trophy = document.createElement('img');
+            trophy.src = 'wstiger2.png';
+            trophy.className = 'mini-tiger';
+            document.getElementById(`trophy-${playerId}`).appendChild(trophy);
 
-            // 判斷是否過關
-            if (score === 10) {
-                setTimeout(() => {
-                    document.getElementById('gameOverModal').style.display = 'flex';
-                }, 800); // 稍微延遲讓最後一下的動畫播完
+            // 檢查是否獲勝
+            if (p.score >= 10) {
+                declareWinner(playerId);
             }
         }
 
-        // 修改：使用 wstiger2.png 作為小老虎分數的圖案
-        function addMiniTiger() {
-            const container = document.getElementById('tigerContainer');
-            const img = document.createElement('img');
-            img.src = 'wstiger2.png'; // 使用已被打到的老虎圖案當作分數
-            img.className = 'mini-tiger';
-            img.alt = '收集到的小老虎';
-            
-            const fallbackSpan = document.createElement('span');
-            fallbackSpan.className = 'mini-tiger-fallback';
-            fallbackSpan.innerText = '🐯';
-            fallbackSpan.style.display = 'none';
-
-            img.onerror = function() {
-                this.style.display = 'none';
-                fallbackSpan.style.display = 'inline';
-            };
-
-            container.appendChild(img);
-            container.appendChild(fallbackSpan);
+        function declareWinner(playerId) {
+            gameEnded = true;
+            document.getElementById('winnerText').innerText = `🏆 ${players[playerId].name} 獲勝！`;
+            setTimeout(() => {
+                document.getElementById('winnerModal').style.display = 'flex';
+            }, 500);
         }
 
-        function resetGame() {
-            score = 0;
-            document.getElementById('scoreText').innerText = score;
-            document.getElementById('tigerContainer').innerHTML = '';
-            document.getElementById('gameOverModal').style.display = 'none';
-            isAttacking = false;
+        function resetAll() {
+            gameEnded = false;
+            document.getElementById('winnerModal').style.display = 'none';
             
-            // 確保圖案重置
-            const wusongImg = document.getElementById('wusongImg');
-            if (wusongImg.style.display !== 'none') wusongImg.src = "ws1.png";
-            
-            const tigerImg = document.getElementById('tigerImg');
-            if (tigerImg.style.display !== 'none') tigerImg.src = "wstiger1.png";
+            for(let i=1; i<=3; i++) {
+                players[i].score = 0;
+                players[i].isAttacking = false;
+                document.getElementById(`score-${i}`).innerText = '0';
+                document.getElementById(`trophy-${i}`).innerHTML = '';
+                document.getElementById(`ws-img-${i}`).src = "ws1.png";
+                document.getElementById(`tg-img-${i}`).src = "wstiger1.png";
+            }
         }
     </script>
 </body>
 </html>
+```eof
+
+### 升級重點說明：
+
+1.  **解決音效問題 (Unlock Audio)**：
+    *   您會在網頁最上方看到一個紅色的**「🔊 點擊此處解鎖遊戲音效」**按鈕。
+    *   **操作規定**：在遊戲開始前，請老師或學生**務必先點擊這個按鈕一次**。點擊後，它會變成綠色，這代表網頁已經取得了瀏覽器的音效播放權限。之後 Micro:bit 揮動傳來訊號時，就保證能聽到震撼的打擊聲了！我更換了一個更具衝擊力的音效檔案。
+2.  **圖片尺寸與排版**：
+    *   我移除了 CSS 裡寫死的圖片高度。現在圖片會以**原始尺寸比例**呈現。
+    *   為了避免原始圖片太大把整個網頁撐破，我在 `.char-img` 加上了 `max-height: 320px;` 作為保險絲。這會讓圖片盡可能大，但仍乖乖待在各自的舞台框裡。武松和老虎依然維持稍微靠近的重疊設計。
+3.  **獨立的連線與計分系統**：
+    *   現在網頁有三個區塊，每個區塊都有獨立的「連線按鈕」。您可以用電腦分別連線三支不同的 Micro:bit（藍牙連線時，請依序點擊連線並選擇對應的裝置）。
+    *   計分系統完全獨立，誰先打滿 10 隻老虎，系統就會自動跳出專屬的「獲勝畫面」宣告勝利者是哪一路的武松。
+4.  **防呆測試功能**：
+    *   為了方便您在還沒連線 Micro:bit 時測試畫面與聲音，您可以**直接用滑鼠點擊各個區域的「遊戲小舞台」**（有武松和老虎的那個框框），這會模擬揮棒打擊的效果。
+
+請將這個新的程式碼存檔測試看看！三人同時揮棒的畫面與聲音效果應該會非常震撼。如果圖片大小不符預期，我們可以再調整 CSS 裡的 `max-height` 數值。
