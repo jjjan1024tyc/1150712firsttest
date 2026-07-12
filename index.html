@@ -78,7 +78,6 @@
         }
         
         /* 武松未打時圖片高度為 95% */
-        /* ✨ 核心變更：加上 cursor: pointer，讓滑鼠滑到武松身上時知道可以點擊 */
         .wusong-wrap { 
             height: 95%;
             z-index: 2; 
@@ -211,10 +210,7 @@
     </div>
 
     <div style="display:none;">
-        <audio id="snd-hit-1" src="https://assets.mixkit.co/active_storage/sfx/2052/2052-preview.mp3" preload="auto"></audio>
-        <audio id="snd-hit-2" src="https://assets.mixkit.co/active_storage/sfx/2052/2052-preview.mp3" preload="auto"></audio>
-        <audio id="snd-hit-3" src="https://assets.mixkit.co/active_storage/sfx/2052/2052-preview.mp3" preload="auto"></audio>
-        <audio id="snd-hit-4" src="https://assets.mixkit.co/active_storage/sfx/2052/2052-preview.mp3" preload="auto"></audio>
+        <audio id="snd-global-hit" src="https://assets.mixkit.co/active_storage/sfx/2052/2052-preview.mp3" preload="auto"></audio>
         <audio id="snd-cheer" src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3" preload="auto"></audio>
     </div>
 
@@ -367,11 +363,11 @@
 
         function unlockAudio() {
             if(audioUnlocked) return;
-            for(let i=1; i<=4; i++) {
-                const snd = document.getElementById(`snd-hit-${i}`);
-                snd.volume = 0;
-                snd.play().then(() => { snd.pause(); snd.currentTime = 0; snd.volume = 1.0; }).catch(e => {});
-            }
+            // 預先解鎖音效物件
+            const snd = document.getElementById('snd-global-hit');
+            snd.volume = 0;
+            snd.play().then(() => { snd.pause(); snd.currentTime = 0; snd.volume = 1.0; }).catch(e => {});
+            
             const cheer = document.getElementById('snd-cheer');
             cheer.volume = 0;
             cheer.play().then(() => { cheer.pause(); cheer.currentTime = 0; cheer.volume = 1.0; }).catch(e => {});
@@ -448,53 +444,59 @@
             if (p.isAttacking || gameEnded) return;
             p.isAttacking = true;
 
+            // ✨ 核心修正：立即播放打擊音效（利用多軌克隆克隆，100%解決第二個沒聲音與多軌重疊問題）
             if(audioUnlocked) {
-                const snd = document.getElementById(`snd-hit-${playerId}`);
-                snd.currentTime = 0;
-                snd.play().catch(e => console.log(e));
+                const globalSnd = document.getElementById('snd-global-hit');
+                const clonedSnd = globalSnd.cloneNode(); 
+                clonedSnd.volume = 1.0;
+                clonedSnd.play().catch(e => console.log(e));
             }
 
-            const zone = document.getElementById(`zone-${playerId}`);
-            zone.classList.add('hit-flash');
-            document.getElementById(`impact-${playerId}`).classList.add('show-impact');
-
-            const wsImg = document.getElementById(`ws-img-${playerId}`);
-            const wsWrap = document.getElementById(`wusong-wrap-${playerId}`);
-            wsImg.src = "ws2.png";
-            wsWrap.classList.add('wusong-strike');
-
-            const tgImg = document.getElementById(`tg-img-${playerId}`);
-            const tgWrap = document.getElementById(`tiger-wrap-${playerId}`);
-            tgImg.src = "wstiger2.png";
-            tgWrap.classList.add('tiger-hit');
-
-            const isWinningHit = (p.score + 1 >= maxScore);
-
+            // ✨ 核心修正：刻意微調延後 150 毫秒（約0.15秒）再執行畫面換圖與受擊動畫，以此與音樂播放緩衝達成完美同步
             setTimeout(() => {
-                wsImg.src = "ws1.png";
-                zone.classList.remove('hit-flash');
-                document.getElementById(`impact-${playerId}`).classList.remove('show-impact');
-                wsWrap.classList.remove('wusong-strike');
-                tgWrap.classList.remove('tiger-hit');
-                
-                if (!isWinningHit) {
-                    tgImg.src = "wstiger1.png";
-                }
-                
-                p.isAttacking = false;
+                const zone = document.getElementById(`zone-${playerId}`);
+                zone.classList.add('hit-flash');
+                document.getElementById(`impact-${playerId}`).classList.add('show-impact');
 
-                if (isWinningHit && !gameEnded) {
-                    declareWinner(playerId);
-                }
-            }, 350);
+                const wsImg = document.getElementById(`ws-img-${playerId}`);
+                const wsWrap = document.getElementById(`wusong-wrap-${playerId}`);
+                wsImg.src = "ws2.png";
+                wsWrap.classList.add('wusong-strike');
 
-            p.score++;
-            document.getElementById(`score-${playerId}`).innerText = p.score;
-            
-            const trophy = document.createElement('img');
-            trophy.src = 'wstiger2.png';
-            trophy.className = 'mini-tiger';
-            document.getElementById(`trophy-${playerId}`).appendChild(trophy);
+                const tgImg = document.getElementById(`tg-img-${playerId}`);
+                const tgWrap = document.getElementById(`tiger-wrap-${playerId}`);
+                tgImg.src = "wstiger2.png";
+                tgWrap.classList.add('tiger-hit');
+
+                const isWinningHit = (p.score + 1 >= maxScore);
+
+                setTimeout(() => {
+                    wsImg.src = "ws1.png";
+                    zone.classList.remove('hit-flash');
+                    document.getElementById(`impact-${playerId}`).classList.remove('show-impact');
+                    wsWrap.classList.remove('wusong-strike');
+                    tgWrap.classList.remove('tiger-hit');
+                    
+                    if (!isWinningHit) {
+                        tgImg.src = "wstiger1.png";
+                    }
+                    
+                    p.isAttacking = false;
+
+                    if (isWinningHit && !gameEnded) {
+                        declareWinner(playerId);
+                    }
+                }, 350);
+
+                p.score++;
+                document.getElementById(`score-${playerId}`).innerText = p.score;
+                
+                const trophy = document.createElement('img');
+                trophy.src = 'wstiger2.png';
+                trophy.className = 'mini-tiger';
+                document.getElementById(`trophy-${playerId}`).appendChild(trophy);
+                
+            }, 150); // 150ms 的視覺延時完美校正了音效播出的硬體時間差
         }
 
         function declareWinner(playerId) {
