@@ -92,16 +92,16 @@
             align-items: center; 
         }
 
-        /* 圖片設定：取消 max-height 的強制約束，改為固定 180px，動態縮放交給 JS */
+        /* 圖片設定：固定 180px，切換圖片時由 CSS 自動維持相同高度，徹底解決變形問題 */
         .char-img { 
             height: 180px; 
+            width: auto;
             max-width: none;
             object-fit: contain; 
         }
 
         /* 針對武松：變形基準點設定為左下角 */
         .wusong-wrap .char-img {
-             transition: transform 0.1s; /* 移除 height 的 transition 以確保切換圖片時瞬間改變大小 */
              transform-origin: bottom left; 
              object-position: bottom left;
         }
@@ -139,14 +139,14 @@
         }
 
         @keyframes flashBg { 0% { background-color: #ffcc80; } 30% { background-color: #ff5252; box-shadow: inset 0 0 50px #ffeb3b; } 100% { background-color: #ffcc80; } }
-        /* 武松打擊動畫：距離拉開了，增加跨步位移(40px)讓棍子打到老虎 */
+        /* 武松打擊動畫：距離拉開了，增加跨步位移(40px)讓棍子打到老虎 (完全不使用 scale 以避免身型變化) */
         @keyframes strikeForward { 
             0% { transform: translateX(0); } 
             50% { transform: translateX(40px); } 
             100% { transform: translateX(0); } 
         }
         
-        /* 老虎震動動畫：必須保留 scale(0.5) 避免瞬間變大 */
+        /* 老虎震動動畫：必須保留 scale(0.5) 維持原本的縮放比例，並且加上位移震動 */
         @keyframes hitShake { 
             0%, 100% { transform: scale(0.5) translate(0, 0); } 
             20%, 60% { transform: scale(0.5) translate(-16px, 16px) rotate(-3deg); } 
@@ -165,7 +165,7 @@
 </head>
 <body>
 
-    <!-- 標題區域 (左邊換成 ws2.png 並與文字一起放大為 80px) -->
+    <!-- 標題區域 -->
     <div class="header-container">
         <img src="ws2.png" class="header-icon" alt="武松打擊">
         <h1>武松打虎</h1>
@@ -191,7 +191,8 @@
         <audio id="snd-cheer" src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3" preload="auto"></audio>
     </div>
 
-    <div id="battlefield" class="players-3">
+    <!-- 預設為 players-1，呈現單人模式版面 -->
+    <div id="battlefield" class="players-1">
         <!-- 玩家 1 (左) -->
         <div class="player-zone" id="zone-1">
             <div class="player-title">🟢 玩家 1</div>
@@ -290,13 +291,7 @@
         const maxScore = 10;
         let gameEnded = false;
         let audioUnlocked = false;
-        let currentPlayers = 3; // 預設3人
-
-        // 動態計算替換圖片的等比真實高度
-        let ws1Height = 180;
-        let ws2Height = 180;
-        let tg1Height = 180;
-        let tg2Height = 180;
+        let currentPlayers = 1; // 預設改為 1 人
 
         const players = {
             1: { score: 0, device: null, server: null, buffer: "", isAttacking: false },
@@ -305,28 +300,9 @@
             4: { score: 0, device: null, server: null, buffer: "", isAttacking: false }
         };
 
-        // 網頁載入時：預載入圖檔、計算完美比例並設定初始人數
-        window.onload = async () => {
-            // 預載圖片以取得原始尺寸 (Natural Height)
-            const p1 = new Promise(r => { const img = new Image(); img.onload = () => r(img); img.onerror = () => r(img); img.src = 'ws1.png'; });
-            const p2 = new Promise(r => { const img = new Image(); img.onload = () => r(img); img.onerror = () => r(img); img.src = 'ws2.png'; });
-            const p3 = new Promise(r => { const img = new Image(); img.onload = () => r(img); img.onerror = () => r(img); img.src = 'wstiger1.png'; });
-            const p4 = new Promise(r => { const img = new Image(); img.onload = () => r(img); img.onerror = () => r(img); img.src = 'wstiger2.png'; });
-
-            const [iWs1, iWs2, iTg1, iTg2] = await Promise.all([p1, p2, p3, p4]);
-
-            // 精確計算比例：以 180px 為基準，依照圖片的原始高度按比例算出第二張圖應有的像素高度
-            if (iWs1.naturalHeight) {
-                const wsScale = 180 / iWs1.naturalHeight;
-                ws2Height = Math.round(iWs2.naturalHeight * wsScale);
-            }
-            if (iTg1.naturalHeight) {
-                const tgScale = 180 / iTg1.naturalHeight;
-                tg2Height = Math.round(iTg2.naturalHeight * tgScale);
-            }
-
-            // 初始化設定
-            setPlayerCount(3, false); 
+        // 網頁載入時：直接套用預設的單人模式設定
+        window.onload = () => {
+            setPlayerCount(1, false); 
         };
 
         // 設定遊玩人數與解鎖音效
@@ -458,24 +434,21 @@
             zone.classList.add('hit-flash');
             document.getElementById(`impact-${playerId}`).classList.add('show-impact');
 
-            // 替換圖案並動態設定計算好的高度 (維持完美比例)
+            // 替換圖案 (CSS 將自動以同等比例維持尺寸)
             const wsImg = document.getElementById(`ws-img-${playerId}`);
             const wsWrap = document.getElementById(`wusong-wrap-${playerId}`);
             wsImg.src = "ws2.png";
-            wsImg.style.height = ws2Height + "px"; 
             wsWrap.classList.add('wusong-strike');
 
             const tgImg = document.getElementById(`tg-img-${playerId}`);
             const tgWrap = document.getElementById(`tiger-wrap-${playerId}`);
             tgImg.src = "wstiger2.png";
-            tgImg.style.height = tg2Height + "px"; 
             tgWrap.classList.add('tiger-hit');
 
             setTimeout(() => {
-                // 復原為預設高度 180px
+                // 復原
                 if(!gameEnded) {
                     wsImg.src = "ws1.png";
-                    wsImg.style.height = ws1Height + "px"; 
                 }
                 zone.classList.remove('hit-flash');
                 document.getElementById(`impact-${playerId}`).classList.remove('show-impact');
@@ -483,7 +456,6 @@
                 tgWrap.classList.remove('tiger-hit');
                 
                 tgImg.src = "wstiger1.png";
-                tgImg.style.height = tg1Height + "px"; 
                 p.isAttacking = false;
             }, 350);
 
@@ -547,11 +519,9 @@
                 
                 const wsImg = document.getElementById(`ws-img-${i}`);
                 wsImg.src = "ws1.png";
-                wsImg.style.height = ws1Height + "px"; 
                 
                 const tgImg = document.getElementById(`tg-img-${i}`);
                 tgImg.src = "wstiger1.png";
-                tgImg.style.height = tg1Height + "px"; 
                 
                 const wsWrap = document.getElementById(`wusong-wrap-${i}`);
                 wsWrap.classList.remove('win-spin');
