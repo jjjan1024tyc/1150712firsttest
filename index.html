@@ -77,15 +77,17 @@
             transition: height 0.15s ease-out;
         }
         
-        /* ✨ 核心變更：武松未打時圖片高度改為 95% */
+        /* 武松未打時圖片高度為 95% */
+        /* ✨ 核心變更：加上 cursor: pointer，讓滑鼠滑到武松身上時知道可以點擊 */
         .wusong-wrap { 
             height: 95%;
             z-index: 2; 
             left: 25%; 
             transform: translateX(-50%);
+            cursor: pointer;
         } 
 
-        /* ✨ 核心變更：武松打下時高度改為 75% */
+        /* 武松打下時高度為 75% */
         .wusong-wrap.wusong-strike {
             height: 75%;
         }
@@ -223,9 +225,9 @@
                 <button class="btn-connect" id="btn-conn-1" onclick="connectDevice(1)">連線 1 號棒</button>
                 <span class="status-text" id="status-1">未連線</span>
             </div>
-            <div class="stage" id="stage-1" onclick="simulateAttack(1)">
+            <div class="stage" id="stage-1">
                 <div class="impact-effect" id="impact-1">💥</div>
-                <div class="char-container wusong-wrap" id="wusong-wrap-1">
+                <div class="char-container wusong-wrap" id="wusong-wrap-1" onclick="simulateAttack(1)">
                     <img id="ws-img-1" class="char-img" src="ws1.png" alt="武松">
                     <div class="char-name">武松</div>
                 </div>
@@ -244,9 +246,9 @@
                 <button class="btn-connect" id="btn-conn-2" onclick="connectDevice(2)">連線 2 號棒</button>
                 <span class="status-text" id="status-2">未連線</span>
             </div>
-            <div class="stage" id="stage-2" onclick="simulateAttack(2)">
+            <div class="stage" id="stage-2">
                 <div class="impact-effect" id="impact-2">💥</div>
-                <div class="char-container wusong-wrap" id="wusong-wrap-2">
+                <div class="char-container wusong-wrap" id="wusong-wrap-2" onclick="simulateAttack(2)">
                     <img id="ws-img-2" class="char-img" src="ws1.png" alt="武松">
                     <div class="char-name">武松</div>
                 </div>
@@ -265,9 +267,9 @@
                 <button class="btn-connect" id="btn-conn-3" onclick="connectDevice(3)">連線 3 號棒</button>
                 <span class="status-text" id="status-3">未連線</span>
             </div>
-            <div class="stage" id="stage-3" onclick="simulateAttack(3)">
+            <div class="stage" id="stage-3">
                 <div class="impact-effect" id="impact-3">💥</div>
-                <div class="char-container wusong-wrap" id="wusong-wrap-3">
+                <div class="char-container wusong-wrap" id="wusong-wrap-3" onclick="simulateAttack(3)">
                     <img id="ws-img-3" class="char-img" src="ws1.png" alt="武松">
                     <div class="char-name">武松</div>
                 </div>
@@ -286,9 +288,9 @@
                 <button class="btn-connect" id="btn-conn-4" onclick="connectDevice(4)">連線 4 號棒</button>
                 <span class="status-text" id="status-4">未連線</span>
             </div>
-            <div class="stage" id="stage-4" onclick="simulateAttack(4)">
+            <div class="stage" id="stage-4">
                 <div class="impact-effect" id="impact-4">💥</div>
-                <div class="char-container wusong-wrap" id="wusong-wrap-4">
+                <div class="char-container wusong-wrap" id="wusong-wrap-4" onclick="simulateAttack(4)">
                     <img id="ws-img-4" class="char-img" src="ws1.png" alt="武松">
                     <div class="char-name">武松</div>
                 </div>
