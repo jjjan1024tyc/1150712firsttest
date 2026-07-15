@@ -334,18 +334,23 @@
                 unlockAudio();
             }
 
-            // 對應不同按鍵給不同玩家 (A=玩家1, S=玩家2, D=玩家3, F=玩家4)
-            switch(event.key.toLowerCase()) {
-                case 'a':
+            // 若尚未選擇遊戲人數，預設自動啟動為 4 人模式
+            if (currentPlayers === 0) {
+                setPlayerCount(4);
+            }
+
+            // 使用 event.code 來避免中文輸入法攔截按鍵 (A=玩家1, S=玩家2, D=玩家3, F=玩家4)
+            switch(event.code) {
+                case 'KeyA':
                     simulateAttack(1);
                     break;
-                case 's':
+                case 'KeyS':
                     simulateAttack(2);
                     break;
-                case 'd':
+                case 'KeyD':
                     simulateAttack(3);
                     break;
-                case 'f':
+                case 'KeyF':
                     simulateAttack(4);
                     break;
             }
@@ -360,7 +365,7 @@
             const minutes = String(now.getMinutes()).padStart(2, '0');
             const seconds = String(now.getSeconds()).padStart(2, '0');
             
-            document.getElementById('timeDisplay').innerText = `最後修改：${year}-${month}-${date} ${hours}:${minutes}:${seconds} (已加入鍵盤支援)`;
+            document.getElementById('timeDisplay').innerText = `最後修改：${year}-${month}-${date} ${hours}:${minutes}:${seconds} (已修正鍵盤控制)`;
         }
 
         function setPlayerCount(num, doUnlock = true) {
