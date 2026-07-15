@@ -48,6 +48,7 @@
         }
 
         .player-title { font-size: 22px; font-weight: bold; color: #4e342e; margin-bottom: 5px; }
+        .keyboard-hint { font-size: 14px; color: #d32f2f; margin-bottom: 5px; font-weight: bold; }
         
         /* 連線按鈕區域 */
         .connect-area { margin-bottom: 10px; }
@@ -195,9 +196,10 @@
 <body>
 
     <div class="header-container">
-        <img src="ws2.png" class="header-icon" alt="武松打擊">
+        <!-- 如果您有圖片，會在此顯示 -->
+        <img src="ws2.png" class="header-icon" alt="武松打擊" onerror="this.style.display='none'">
         <h1>武松打虎</h1>
-        <img src="wstiger1.png" class="header-icon" alt="老虎">
+        <img src="wstiger1.png" class="header-icon" alt="老虎" onerror="this.style.display='none'">
     </div>
     
     <div id="topControls">
@@ -217,6 +219,7 @@
     <div id="battlefield">
         <div class="player-zone" id="zone-1">
             <div class="player-title">🟢 玩家 1</div>
+            <div class="keyboard-hint">(滑鼠點擊 或 按 A 鍵)</div>
             <div class="connect-area">
                 <button class="btn-connect" id="btn-conn-1" onclick="connectDevice(1)">連線 1 號棒</button>
                 <span class="status-text" id="status-1">未連線</span>
@@ -224,11 +227,11 @@
             <div class="stage" id="stage-1">
                 <div class="impact-effect" id="impact-1">💥</div>
                 <div class="char-container wusong-wrap" id="wusong-wrap-1" onclick="simulateAttack(1)">
-                    <img id="ws-img-1" class="char-img" src="ws1.png" alt="武松">
+                    <img id="ws-img-1" class="char-img" src="ws1.png" alt="武松" onerror="this.src='https://via.placeholder.com/80x150/ff9800/fff?text=武松'">
                     <div class="char-name">武松</div>
                 </div>
                 <div class="char-container tiger-wrap" id="tiger-wrap-1">
-                    <img id="tg-img-1" class="char-img" src="wstiger1.png" alt="老虎">
+                    <img id="tg-img-1" class="char-img" src="wstiger1.png" alt="老虎" onerror="this.src='https://via.placeholder.com/80x80/795548/fff?text=老虎'">
                     <div class="char-name">小老虎</div>
                 </div>
             </div>
@@ -238,6 +241,7 @@
 
         <div class="player-zone" id="zone-2">
             <div class="player-title">🟡 玩家 2</div>
+            <div class="keyboard-hint">(滑鼠點擊 或 按 S 鍵)</div>
             <div class="connect-area">
                 <button class="btn-connect" id="btn-conn-2" onclick="connectDevice(2)">連線 2 號棒</button>
                 <span class="status-text" id="status-2">未連線</span>
@@ -245,11 +249,11 @@
             <div class="stage" id="stage-2">
                 <div class="impact-effect" id="impact-2">💥</div>
                 <div class="char-container wusong-wrap" id="wusong-wrap-2" onclick="simulateAttack(2)">
-                    <img id="ws-img-2" class="char-img" src="ws1.png" alt="武松">
+                    <img id="ws-img-2" class="char-img" src="ws1.png" alt="武松" onerror="this.src='https://via.placeholder.com/80x150/ff9800/fff?text=武松'">
                     <div class="char-name">武松</div>
                 </div>
                 <div class="char-container tiger-wrap" id="tiger-wrap-2">
-                    <img id="tg-img-2" class="char-img" src="wstiger1.png" alt="老虎">
+                    <img id="tg-img-2" class="char-img" src="wstiger1.png" alt="老虎" onerror="this.src='https://via.placeholder.com/80x80/795548/fff?text=老虎'">
                     <div class="char-name">小老虎</div>
                 </div>
             </div>
@@ -259,6 +263,7 @@
 
         <div class="player-zone" id="zone-3">
             <div class="player-title">🔴 玩家 3</div>
+            <div class="keyboard-hint">(滑鼠點擊 或 按 D 鍵)</div>
             <div class="connect-area">
                 <button class="btn-connect" id="btn-conn-3" onclick="connectDevice(3)">連線 3 號棒</button>
                 <span class="status-text" id="status-3">未連線</span>
@@ -266,11 +271,11 @@
             <div class="stage" id="stage-3">
                 <div class="impact-effect" id="impact-3">💥</div>
                 <div class="char-container wusong-wrap" id="wusong-wrap-3" onclick="simulateAttack(3)">
-                    <img id="ws-img-3" class="char-img" src="ws1.png" alt="武松">
+                    <img id="ws-img-3" class="char-img" src="ws1.png" alt="武松" onerror="this.src='https://via.placeholder.com/80x150/ff9800/fff?text=武松'">
                     <div class="char-name">武松</div>
                 </div>
                 <div class="char-container tiger-wrap" id="tiger-wrap-3">
-                    <img id="tg-img-3" class="char-img" src="wstiger1.png" alt="老虎">
+                    <img id="tg-img-3" class="char-img" src="wstiger1.png" alt="老虎" onerror="this.src='https://via.placeholder.com/80x80/795548/fff?text=老虎'">
                     <div class="char-name">小老虎</div>
                 </div>
             </div>
@@ -280,6 +285,7 @@
 
         <div class="player-zone" id="zone-4">
             <div class="player-title">🔵 玩家 4</div>
+            <div class="keyboard-hint">(滑鼠點擊 或 按 F 鍵)</div>
             <div class="connect-area">
                 <button class="btn-connect" id="btn-conn-4" onclick="connectDevice(4)">連線 4 號棒</button>
                 <span class="status-text" id="status-4">未連線</span>
@@ -287,11 +293,11 @@
             <div class="stage" id="stage-4">
                 <div class="impact-effect" id="impact-4">💥</div>
                 <div class="char-container wusong-wrap" id="wusong-wrap-4" onclick="simulateAttack(4)">
-                    <img id="ws-img-4" class="char-img" src="ws1.png" alt="武松">
+                    <img id="ws-img-4" class="char-img" src="ws1.png" alt="武松" onerror="this.src='https://via.placeholder.com/80x150/ff9800/fff?text=武松'">
                     <div class="char-name">武松</div>
                 </div>
                 <div class="char-container tiger-wrap" id="tiger-wrap-4">
-                    <img id="tg-img-4" class="char-img" src="wstiger1.png" alt="老虎">
+                    <img id="tg-img-4" class="char-img" src="wstiger1.png" alt="老虎" onerror="this.src='https://via.placeholder.com/80x80/795548/fff?text=老虎'">
                     <div class="char-name">小老虎</div>
                 </div>
             </div>
@@ -323,6 +329,33 @@
             updateGeneratedTime();
         };
 
+        // 監聽鍵盤事件
+        document.addEventListener('keydown', function(event) {
+            // 防止長按按鍵連續觸發
+            if (event.repeat) return;
+
+            // 確保第一次按鍵也能順利解鎖音效限制
+            if (!audioUnlocked) {
+                unlockAudio();
+            }
+
+            // 對應不同按鍵給不同玩家 (A=玩家1, S=玩家2, D=玩家3, F=玩家4)
+            switch(event.key.toLowerCase()) {
+                case 'a':
+                    simulateAttack(1);
+                    break;
+                case 's':
+                    simulateAttack(2);
+                    break;
+                case 'd':
+                    simulateAttack(3);
+                    break;
+                case 'f':
+                    simulateAttack(4);
+                    break;
+            }
+        });
+
         function updateGeneratedTime() {
             const now = new Date();
             const year = now.getFullYear();
@@ -332,7 +365,7 @@
             const minutes = String(now.getMinutes()).padStart(2, '0');
             const seconds = String(now.getSeconds()).padStart(2, '0');
             
-            document.getElementById('timeDisplay').innerText = `最後修改：${year}-${month}-${date} ${hours}:${minutes}:${seconds}`;
+            document.getElementById('timeDisplay').innerText = `最後修改：${year}-${month}-${date} ${hours}:${minutes}:${seconds} (已加入鍵盤支援)`;
         }
 
         function setPlayerCount(num, doUnlock = true) {
@@ -444,7 +477,7 @@
             if (p.isAttacking || gameEnded) return;
             p.isAttacking = true;
 
-            // ✨ 核心修正：立即播放打擊音效（利用多軌克隆克隆，100%解決第二個沒聲音與多軌重疊問題）
+            // 播放打擊音效
             if(audioUnlocked) {
                 const globalSnd = document.getElementById('snd-global-hit');
                 const clonedSnd = globalSnd.cloneNode(); 
@@ -452,7 +485,7 @@
                 clonedSnd.play().catch(e => console.log(e));
             }
 
-            // ✨ 核心修正：刻意微調延後 150 毫秒（約0.15秒）再執行畫面換圖與受擊動畫，以此與音樂播放緩衝達成完美同步
+            // 視覺動畫與音效的微調延遲
             setTimeout(() => {
                 const zone = document.getElementById(`zone-${playerId}`);
                 zone.classList.add('hit-flash');
@@ -494,9 +527,11 @@
                 const trophy = document.createElement('img');
                 trophy.src = 'wstiger2.png';
                 trophy.className = 'mini-tiger';
+                // 如果沒有圖片則使用預設顯示，防止破圖
+                trophy.onerror = function() { this.style.display='none'; };
                 document.getElementById(`trophy-${playerId}`).appendChild(trophy);
                 
-            }, 150); // 150ms 的視覺延時完美校正了音效播出的硬體時間差
+            }, 150); 
         }
 
         function declareWinner(playerId) {
